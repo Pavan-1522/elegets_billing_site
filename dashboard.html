@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Elegets Electronics</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #3f37c9;
+      --dark: #0c0e1c;
+      --dark-light: #1a1d2e;
+      --light: #f8f9fa;
+      --success: #4cc9f0;
+      --warning: #f8961e;
+      --danger: #f72585;
+    }
+    
+    body {
+      background-color: var(--dark);
+      color: var(--light);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    
+    .navbar {
+      background-color: var(--dark-light);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .dashboard-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 2rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .stat-card {
+      background-color: var(--dark-light);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .stat-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      color: rgba(255,255,255,0.7);
+      font-size: 1rem;
+    }
+    
+    .quick-actions {
+      margin-top: 2rem;
+    }
+    
+    .action-card {
+      background-color: var(--dark-light);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .action-card:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .action-card:hover .action-icon {
+      color: white;
+    }
+    
+    .action-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <!-- Brand on the left -->
+    <a class="navbar-brand" href="#">
+      <i class="fas fa-microchip"></i>
+      <span>Elegets Electronics</span>
+    </a>
+    
+    <!-- Toggler button -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <!-- Navigation items centered -->
+      <ul class="navbar-nav mx-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="dashboard.html"><i class="fas fa-home me-2"></i> Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="billing.html"><i class="fas fa-file-invoice-dollar me-2"></i> Billing</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="bill_edit.html"><i class="fas fa-edit me-2"></i> Edit Bill</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="add_products.html"><i class="fas fa-boxes me-2"></i> Products</a>
+        </li>
+      </ul>
+      
+      <!-- User dropdown on the right -->
+      <div class="d-flex">
+        <div class="dropdown">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle me-2"></i>
+            <span id="usernameDisplay">pavan@elegets.com</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+  <!-- Dashboard Content -->
+  <div class="container my-4">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <h1><i class="fas fa-tachometer-alt me-3"></i> Elegets Electronics Billing Desk</h1>
+      <p class="mb-0">Complete billing and inventory management system</p>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row">
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-microchip"></i>
+          </div>
+          <div class="stat-value" id="totalComponents">0</div>
+          <div class="stat-label">Total Components</div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-file-invoice"></i>
+          </div>
+          <div class="stat-value" id="totalBills">0</div>
+          <div class="stat-label">Total Bills</div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-rupee-sign"></i>
+          </div>
+          <div class="stat-value" id="totalPayments">₹0</div>
+          <div class="stat-label">Total Payments</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <h3 class="text-white mt-5 mb-4">Quick Actions</h3>
+    <div class="row quick-actions">
+      <div class="col-md-3">
+        <div class="action-card" onclick="window.location.href='billing.html'">
+          <div class="action-icon">
+            <i class="fas fa-plus-circle"></i>
+          </div>
+          <h5>Create New Bill</h5>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="action-card" onclick="window.location.href='edit-bill.html'">
+          <div class="action-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h5>Find/Edit Bill</h5>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="action-card" onclick="window.location.href='products.html'">
+          <div class="action-icon">
+            <i class="fas fa-box-open"></i>
+          </div>
+          <h5>Manage Products</h5>
+        </div>
+      </div>
+      
+      <div class="col-md-3">
+        <div class="action-card" onclick="window.location.href='reports.html'">
+          <div class="action-icon">
+            <i class="fas fa-chart-bar"></i>
+          </div>
+          <h5>View Reports</h5>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recent Bills (Optional) -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <div class="card bg-dark-light">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Bills</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover">
+                <thead>
+                  <tr>
+                    <th>Bill No.</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recentBills">
+                  <!-- Recent bills will be loaded here -->
+                  <tr>
+                    <td colspan="5" class="text-center">Loading recent bills...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+  <script>
+    // Firebase configuration (same as login page)
+  const firebaseConfig = {
+  apiKey: "AIzaSyASjV5eTtSWFih3pP8aJKzztj7PsxEW3Sg",
+  authDomain: "elegets-bill-desk.firebaseapp.com",
+  projectId: "elegets-bill-desk",
+  storageBucket: "elegets-bill-desk.firebasestorage.app",
+  messagingSenderId: "716287582493",
+  appId: "1:716287582493:web:28e4e23ef312aefb77c1f4"
+};
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  // Check authentication state
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'index.html';
+    }
+  });
+  // Handle user display and logout
+document.addEventListener('DOMContentLoaded', function() {
+  const auth = firebase.auth();
+  
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      // User is signed in
+      const displayName = user.displayName || user.email || 'User';
+      document.getElementById('usernameDisplay').textContent = displayName;
+      
+      // Profile picture if available
+      if (user.photoURL) {
+        const userIcon = document.querySelector('#userDropdown i');
+        userIcon.classList.remove('fa-user-circle');
+        userIcon.style.backgroundImage = `url(${user.photoURL})`;
+        userIcon.style.backgroundSize = 'cover';
+        userIcon.style.width = '1.25em';
+        userIcon.style.height = '1.25em';
+        userIcon.style.borderRadius = '50%';
+        userIcon.style.display = 'inline-block';
+      }
+    }
+  });
+  
+  // Handle logout
+  document.getElementById('logoutBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    auth.signOut().then(() => {
+      window.location.href = 'index.html';
+    });
+  });
+});
+    // Initialize Supabase client
+    const supabaseUrl = 'https://oborglvlgafnglzqczot.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ib3JnbHZsZ2FmbmdsenFjem90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjE2MzEsImV4cCI6MjA2ODQ5NzYzMX0.dDt-_pcuEcyuvBlNvpMCspPXW04AU-KeFjIpQcWXXXk';
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+
+    // Load dashboard data
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        // Load total components count
+        const { count: componentsCount } = await supabase
+          .from('products')
+          .select('*', { count: 'exact', head: true });
+        
+        document.getElementById('totalComponents').textContent = componentsCount || 0;
+        
+        // Load total bills count and payments sum
+        const { count: billsCount, data: billsData } = await supabase
+          .from('bills')
+          .select('amount_paid', { count: 'exact' });
+        
+        document.getElementById('totalBills').textContent = billsCount || 0;
+        
+        // Calculate total payments
+        const totalPayments = billsData?.reduce((sum, bill) => sum + (bill.amount_paid || 0), 0) || 0;
+        document.getElementById('totalPayments').textContent = '₹' + totalPayments.toLocaleString('en-IN');
+        
+        // Load recent bills (last 5)
+        const { data: recentBills } = await supabase
+          .from('bills')
+          .select('bill_number, bill_date, customer, grand_total, status')
+          .order('bill_date', { ascending: false })
+          .limit(5);
+        
+        const recentBillsTable = document.getElementById('recentBills');
+        recentBillsTable.innerHTML = '';
+        
+        if (recentBills && recentBills.length > 0) {
+          recentBills.forEach(bill => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><a href="edit-bill.html?bill=${bill.bill_number}" class="text-primary">${bill.bill_number}</a></td>
+              <td>${new Date(bill.bill_date).toLocaleDateString()}</td>
+              <td>${bill.customer?.name || 'N/A'}</td>
+              <td>₹${bill.grand_total?.toFixed(2) || '0.00'}</td>
+              <td><span class="badge ${bill.status === 'paid' ? 'bg-success' : 'bg-warning'}">${bill.status || 'pending'}</span></td>
+            `;
+            recentBillsTable.appendChild(row);
+          });
+        } else {
+          recentBillsTable.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center">No recent bills found</td>
+            </tr>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        document.getElementById('totalComponents').textContent = 'Error';
+        document.getElementById('totalBills').textContent = 'Error';
+        document.getElementById('totalPayments').textContent = 'Error';
+      }
+    });
+  </script>
+</body>
+</html>

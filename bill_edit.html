@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Bill - Elegets Electronics</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #3f37c9;
+      --dark: #0c0e1c;
+      --dark-light: #1a1d2e;
+      --light: #f8f9fa;
+      --success: #4cc9f0;
+      --warning: #f8961e;
+      --danger: #f72585;
+    }
+    
+    body {
+      background-color: var(--dark);
+      color: var(--light);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    
+    .navbar {
+      background-color: var(--dark-light);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .search-card {
+      background-color: var(--dark-light);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .edit-card {
+      background-color: var(--dark-light);
+      border-radius: 10px;
+      padding: 20px;
+      display: none;
+    }
+    
+    /* Professional Invoice Template */
+    .invoice-template {
+      background: white;
+      color: #333;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+      display: none;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    
+    .invoice-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .invoice-company {
+      flex: 1;
+    }
+    
+    .invoice-company h2 {
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+    
+    .invoice-title {
+      text-align: right;
+    }
+    
+    .invoice-title h1 {
+      color: var(--primary);
+      margin-bottom: 5px;
+      font-size: 28px;
+    }
+    
+    .invoice-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    
+    .invoice-table th {
+      background-color: var(--primary);
+      color: white;
+      padding: 12px;
+      text-align: left;
+    }
+    
+    .invoice-table td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .invoice-table tr:last-child td {
+      border-bottom: 2px solid var(--primary);
+    }
+    
+    .invoice-totals {
+      margin-top: 30px;
+      width: 300px;
+      float: right;
+      border-top: 2px solid var(--primary);
+      padding-top: 10px;
+    }
+    
+    .invoice-totals .row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .invoice-totals .total {
+      font-weight: bold;
+      font-size: 1.1em;
+      color: var(--primary);
+    }
+    
+    .invoice-footer {
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+      text-align: center;
+      font-size: 0.9em;
+      color: #777;
+    }
+    
+    .logo-placeholder {
+      width: 150px;
+      height: 80px;
+      background-color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 15px;
+      color: #999;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <!-- Brand on the left -->
+    <a class="navbar-brand" href="#">
+      <i class="fas fa-microchip"></i>
+      <span>Elegets Electronics</span>
+    </a>
+    
+    <!-- Toggler button -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <!-- Navigation items centered -->
+      <ul class="navbar-nav mx-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="dashboard.html"><i class="fas fa-home me-2"></i> Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="billing.html"><i class="fas fa-file-invoice-dollar me-2"></i> Billing</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="bill_edit.html"><i class="fas fa-edit me-2"></i> Edit Bill</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="add_products.html"><i class="fas fa-boxes me-2"></i> Products</a>
+        </li>
+      </ul>
+      
+      <!-- User dropdown on the right -->
+      <div class="d-flex">
+        <div class="dropdown">
+          <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle me-2"></i>
+            <span id="usernameDisplay">pavan@elegets.com</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+  <!-- Main Content -->
+  <div class="container my-4">
+    <h1 class="text-white mb-4">Edit Bill</h1>
+    
+    <!-- Search Card -->
+    <div class="search-card">
+      <div class="row">
+        <div class="col-md-8">
+          <input type="text" id="billSearch" class="form-control form-control-lg" placeholder="Enter Bill Number (e.g. ELE001)">
+        </div>
+        <div class="col-md-4">
+          <button id="searchBtn" class="btn btn-primary w-100 h-100">
+            <i class="fas fa-search me-2"></i> Search Bill
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Edit Bill Card -->
+    <div class="edit-card" id="editBillCard">
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Date</label>
+            <input type="date" id="editBillDate" class="form-control">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Payment Method</label>
+            <select id="editPaymentMethod" class="form-select">
+              <option value="Cash">Cash</option>
+              <option value="UPI">UPI</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Debit Card">Debit Card</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Customer Information -->
+      <h5 class="mt-4 mb-3"><i class="fas fa-user me-2"></i> Customer Information</h5>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="editCustomerName" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Phone Number</label>
+          <input type="tel" id="editCustomerPhone" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Email</label>
+          <input type="email" id="editCustomerEmail" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Address</label>
+          <input type="text" id="editCustomerAddress" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">City</label>
+          <input type="text" id="editCustomerCity" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Pincode</label>
+          <input type="text" id="editCustomerPincode" class="form-control">
+        </div>
+      </div>
+      
+      <!-- Add Products Section -->
+      <h5 class="mt-4 mb-3"><i class="fas fa-plus-circle me-2"></i> Add Products</h5>
+      <div class="row g-2 mb-3">
+        <div class="col-md-5">
+          <input type="text" id="addProductCode" class="form-control" placeholder="Enter Product Code">
+        </div>
+        <div class="col-md-3">
+          <input type="number" id="addProductQty" class="form-control" placeholder="Qty" min="1" value="1">
+        </div>
+        <div class="col-md-4">
+          <button id="addProductBtn" class="btn btn-outline-light w-100">
+            <i class="fas fa-plus me-2"></i> Add Product
+          </button>
+        </div>
+      </div>
+      
+      <!-- Bill Items -->
+      <h5 class="mt-4 mb-3"><i class="fas fa-shopping-cart me-2"></i> Bill Items</h5>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="editBillItems">
+            <!-- Items will be added here -->
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Bill Summary -->
+      <div class="row mt-4">
+        <div class="col-md-6">
+          <div class="mb-3">
+            <label class="form-label">Additional Notes</label>
+            <textarea id="editAdditionalNotes" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="bill-summary">
+            <div class="row">
+              <div class="col-6">Subtotal:</div>
+              <div class="col-6 text-end">₹<span id="editSubtotal">0.00</span></div>
+            </div>
+            <div class="row">
+              <div class="col-6">Discount:</div>
+              <div class="col-6 text-end">- ₹<input type="number" id="editDiscount" class="form-control form-control-sm d-inline-block w-auto" value="0"></div>
+            </div>
+            <div class="row">
+              <div class="col-6">Delivery Charges:</div>
+              <div class="col-6 text-end">+ ₹<input type="number" id="editDelivery" class="form-control form-control-sm d-inline-block w-auto" value="0"></div>
+            </div>
+            <div class="row mt-2 pt-2 border-top">
+              <div class="col-6 fw-bold">Grand Total:</div>
+              <div class="col-6 text-end fw-bold">₹<span id="editGrandTotal">0.00</span></div>
+            </div>
+            <div class="row mt-2">
+              <div class="col-6">Amount Paid:</div>
+              <div class="col-6 text-end">₹<input type="number" id="editPaid" class="form-control form-control-sm d-inline-block w-auto" value="0"></div>
+            </div>
+            <div class="row mt-2 pt-2 border-top">
+              <div class="col-6 fw-bold">Balance Due:</div>
+              <div class="col-6 text-end fw-bold">₹<span id="editBalance">0.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="d-flex justify-content-end mt-4 gap-3">
+        <button id="deleteBillBtn" class="btn btn-danger">
+          <i class="fas fa-trash me-2"></i> Delete Bill
+        </button>
+        <button id="updateBillBtn" class="btn btn-success">
+          <i class="fas fa-save me-2"></i> Update Bill
+        </button>
+        <button id="printBillBtn" class="btn btn-primary">
+          <i class="fas fa-print me-2"></i> Print Invoice
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Professional Invoice Template for PDF -->
+  <div id="invoiceTemplate" class="invoice-template">
+    <div class="invoice-header">
+      <div class="invoice-company">
+        <div class="logo-placeholder">Your Logo Here</div>
+        <h2>Elegets Electronics</h2>
+        <p>GMRIT College, Rajam, Andhra Pradesh - 532127</p>
+        <p>Phone: 6302085024 | Email: contact.elegets@gmail.com</p>
+      </div>
+      <div class="invoice-title">
+        <h1>INVOICE</h1>
+        <p><strong>Invoice #:</strong> <span id="invoiceNumber"></span></p>
+        <p><strong>Date:</strong> <span id="invoiceDate"></span></p>
+      </div>
+    </div>
+    
+    <div class="invoice-meta">
+      <div>
+        <h4>Bill To:</h4>
+        <p id="invoiceCustomerName"></p>
+        <p id="invoiceCustomerPhone"></p>
+        <p id="invoiceCustomerAddress"></p>
+      </div>
+      <div>
+        <h4>Payment Method:</h4>
+        <p id="invoicePaymentMethod"></p>
+      </div>
+    </div>
+    
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Unit Price</th>
+          <th>Qty</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody id="invoiceItems">
+        <!-- Items will be added here -->
+      </tbody>
+    </table>
+    
+    <div class="invoice-totals">
+      <div class="row">
+        <div>Subtotal:</div>
+        <div>₹<span id="invoiceSubtotal">0.00</span></div>
+      </div>
+      <div class="row">
+        <div>Discount:</div>
+        <div>- ₹<span id="invoiceDiscount">0.00</span></div>
+      </div>
+      <div class="row">
+        <div>Delivery Charges:</div>
+        <div>+ ₹<span id="invoiceDelivery">0.00</span></div>
+      </div>
+      <div class="row total">
+        <div>Grand Total:</div>
+        <div>₹<span id="invoiceGrandTotal">0.00</span></div>
+      </div>
+      <div class="row">
+        <div>Amount Paid:</div>
+        <div>₹<span id="invoicePaid">0.00</span></div>
+      </div>
+      <div class="row total">
+        <div>Balance Due:</div>
+        <div>₹<span id="invoiceBalance">0.00</span></div>
+      </div>
+    </div>
+    
+    <div class="invoice-footer">
+      <p>Thank you for your business!</p>
+      <p><strong>Notes:</strong> <span id="invoiceNotes"></span></p>
+      <p class="mt-3">Terms: Payment due within 15 days</p>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content bg-dark">
+        <div class="modal-header border-0">
+          <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i> Confirm Deletion</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this bill permanently?</p>
+          <p class="fw-bold">This action cannot be undone!</p>
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox" id="confirmDeleteCheck">
+            <label class="form-check-label" for="confirmDeleteCheck">
+              I understand this will permanently delete the bill
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Permanently</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+  <script>
+    // Firebase configuration (same as login page)
+  const firebaseConfig = {
+  apiKey: "AIzaSyASjV5eTtSWFih3pP8aJKzztj7PsxEW3Sg",
+  authDomain: "elegets-bill-desk.firebaseapp.com",
+  projectId: "elegets-bill-desk",
+  storageBucket: "elegets-bill-desk.firebasestorage.app",
+  messagingSenderId: "716287582493",
+  appId: "1:716287582493:web:28e4e23ef312aefb77c1f4"
+};
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  // Check authentication state
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'index.html';
+    }
+  });
+  // Handle user display and logout
+document.addEventListener('DOMContentLoaded', function() {
+  const auth = firebase.auth();
+  
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      // User is signed in
+      const displayName = user.displayName || user.email || 'User';
+      document.getElementById('usernameDisplay').textContent = displayName;
+      
+      // Profile picture if available
+      if (user.photoURL) {
+        const userIcon = document.querySelector('#userDropdown i');
+        userIcon.classList.remove('fa-user-circle');
+        userIcon.style.backgroundImage = `url(${user.photoURL})`;
+        userIcon.style.backgroundSize = 'cover';
+        userIcon.style.width = '1.25em';
+        userIcon.style.height = '1.25em';
+        userIcon.style.borderRadius = '50%';
+        userIcon.style.display = 'inline-block';
+      }
+    }
+  });
+  
+  // Handle logout
+  document.getElementById('logoutBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    auth.signOut().then(() => {
+      window.location.href = 'index.html';
+    });
+  });
+});
+    // Initialize Supabase client
+    const supabaseUrl = 'https://oborglvlgafnglzqczot.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ib3JnbHZsZ2FmbmdsenFjem90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjE2MzEsImV4cCI6MjA2ODQ5NzYzMX0.dDt-_pcuEcyuvBlNvpMCspPXW04AU-KeFjIpQcWXXXk';
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Global variables
+    let currentBill = null;
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Search button click handler
+      document.getElementById('searchBtn').addEventListener('click', searchBill);
+      
+      // Bill number input - allow searching by pressing Enter
+      document.getElementById('billSearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          searchBill();
+        }
+      });
+      
+      // Add product button
+      document.getElementById('addProductBtn').addEventListener('click', addProductToBill);
+      
+      // Update button click handler
+      document.getElementById('updateBillBtn').addEventListener('click', updateBill);
+      
+      // Print button click handler
+      document.getElementById('printBillBtn').addEventListener('click', generateInvoicePDF);
+      
+      // Delete button click handler
+      document.getElementById('deleteBillBtn').addEventListener('click', showDeleteConfirmation);
+      
+      // Confirm delete button
+      document.getElementById('confirmDeleteBtn').addEventListener('click', deleteBill);
+      
+      // Financial inputs change handlers
+      document.getElementById('editDiscount').addEventListener('input', updateEditBillSummary);
+      document.getElementById('editDelivery').addEventListener('input', updateEditBillSummary);
+      document.getElementById('editPaid').addEventListener('input', updateEditBillSummary);
+    });
+
+    // Search for a bill by number
+    async function searchBill() {
+      const billNumber = document.getElementById('billSearch').value.trim();
+      
+      if (!billNumber) {
+        alert('Please enter a bill number');
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('bills')
+          .select('*')
+          .eq('bill_number', billNumber)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+          currentBill = data;
+          displayBill(data);
+          document.getElementById('editBillCard').style.display = 'block';
+        } else {
+          alert('Bill not found!');
+        }
+      } catch (error) {
+        console.error('Error searching for bill:', error);
+        alert('Error searching for bill: ' + error.message);
+      }
+    }
+
+    // Display bill data in the edit form
+    function displayBill(bill) {
+      // Basic bill info
+      document.getElementById('editBillDate').value = bill.bill_date || new Date().toISOString().split('T')[0];
+      document.getElementById('editPaymentMethod').value = bill.payment_method || 'Cash';
+      
+      // Customer info
+      document.getElementById('editCustomerName').value = bill.customer?.name || '';
+      document.getElementById('editCustomerPhone').value = bill.customer?.phone || '';
+      document.getElementById('editCustomerEmail').value = bill.customer?.email || '';
+      document.getElementById('editCustomerAddress').value = bill.customer?.address || '';
+      document.getElementById('editCustomerCity').value = bill.customer?.city || '';
+      document.getElementById('editCustomerPincode').value = bill.customer?.pincode || '';
+      
+      // Bill items
+      const itemsTable = document.getElementById('editBillItems');
+      itemsTable.innerHTML = '';
+      
+      if (bill.items && bill.items.length > 0) {
+        bill.items.forEach((item, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.name}</td>
+            <td>₹${item.price.toFixed(2)}</td>
+            <td><input type="number" class="form-control form-control-sm item-qty" value="${item.qty}" data-index="${index}" min="1"></td>
+            <td>₹${item.total.toFixed(2)}</td>
+            <td><button class="btn btn-sm btn-outline-danger remove-item" data-index="${index}"><i class="fas fa-trash"></i></button></td>
+          `;
+          itemsTable.appendChild(row);
+        });
+        
+        // Add event listeners for quantity changes
+        document.querySelectorAll('.item-qty').forEach(input => {
+          input.addEventListener('change', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            const newQty = parseInt(this.value) || 1;
+            currentBill.items[index].qty = newQty;
+            currentBill.items[index].total = newQty * currentBill.items[index].price;
+            updateEditBillSummary();
+          });
+        });
+        
+        // Add event listeners for remove buttons
+        document.querySelectorAll('.remove-item').forEach(button => {
+          button.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            currentBill.items.splice(index, 1);
+            displayBill(currentBill); // Refresh display
+          });
+        });
+      }
+      
+      // Financials
+      document.getElementById('editDiscount').value = bill.discount || 0;
+      document.getElementById('editDelivery').value = bill.delivery_charges || 0;
+      document.getElementById('editPaid').value = bill.amount_paid || 0;
+      document.getElementById('editAdditionalNotes').value = bill.notes || '';
+      
+      // Update summary
+      updateEditBillSummary();
+    }
+
+    // Add product to bill
+    async function addProductToBill() {
+      const code = document.getElementById('addProductCode').value.trim();
+      const qty = parseInt(document.getElementById('addProductQty').value) || 1;
+      
+      if (!code) {
+        alert('Please enter a product code');
+        return;
+      }
+      
+      try {
+        // Search for product in database
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('code', code)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+          // Initialize items array if it doesn't exist
+          if (!currentBill.items) {
+            currentBill.items = [];
+          }
+          
+          // Check if product already exists in bill
+          const existingItemIndex = currentBill.items.findIndex(item => item.code === code);
+          
+          if (existingItemIndex >= 0) {
+            // Update quantity if product already exists
+            currentBill.items[existingItemIndex].qty += qty;
+            currentBill.items[existingItemIndex].total = currentBill.items[existingItemIndex].qty * currentBill.items[existingItemIndex].price;
+          } else {
+            // Add new product to bill
+            currentBill.items.push({
+              code: data.code,
+              name: data.name,
+              price: data.sale_price,
+              qty: qty,
+              total: qty * data.sale_price
+            });
+          }
+          
+          // Clear add product fields
+          document.getElementById('addProductCode').value = '';
+          document.getElementById('addProductQty').value = '1';
+          
+          // Refresh display
+          displayBill(currentBill);
+        } else {
+          alert('Product not found!');
+        }
+      } catch (error) {
+        console.error('Error adding product:', error);
+        alert('Error adding product: ' + error.message);
+      }
+    }
+
+    // Update the bill summary calculations
+    function updateEditBillSummary() {
+      if (!currentBill || !currentBill.items) return;
+      
+      const subtotal = currentBill.items.reduce((sum, item) => sum + item.total, 0);
+      const discount = parseFloat(document.getElementById('editDiscount').value) || 0;
+      const delivery = parseFloat(document.getElementById('editDelivery').value) || 0;
+      const paid = parseFloat(document.getElementById('editPaid').value) || 0;
+      
+      const grandTotal = subtotal + delivery - discount;
+      const balance = grandTotal - paid;
+      
+      // Update display
+      document.getElementById('editSubtotal').textContent = subtotal.toFixed(2);
+      document.getElementById('editGrandTotal').textContent = grandTotal.toFixed(2);
+      document.getElementById('editBalance').textContent = balance.toFixed(2);
+    }
+
+    // Update bill in Supabase
+    async function updateBill() {
+      if (!currentBill) return;
+      
+      // Update currentBill object with form values
+      currentBill.bill_date = document.getElementById('editBillDate').value;
+      currentBill.payment_method = document.getElementById('editPaymentMethod').value;
+      
+      currentBill.customer = {
+        name: document.getElementById('editCustomerName').value,
+        phone: document.getElementById('editCustomerPhone').value,
+        email: document.getElementById('editCustomerEmail').value,
+        address: document.getElementById('editCustomerAddress').value,
+        city: document.getElementById('editCustomerCity').value,
+        pincode: document.getElementById('editCustomerPincode').value
+      };
+      
+      currentBill.discount = parseFloat(document.getElementById('editDiscount').value) || 0;
+      currentBill.delivery_charges = parseFloat(document.getElementById('editDelivery').value) || 0;
+      currentBill.amount_paid = parseFloat(document.getElementById('editPaid').value) || 0;
+      
+      const subtotal = currentBill.items.reduce((sum, item) => sum + item.total, 0);
+      currentBill.subtotal = subtotal;
+      currentBill.grand_total = subtotal + currentBill.delivery_charges - currentBill.discount;
+      currentBill.balance = currentBill.grand_total - currentBill.amount_paid;
+      
+      currentBill.notes = document.getElementById('editAdditionalNotes').value;
+      
+      try {
+        const { data, error } = await supabase
+          .from('bills')
+          .update(currentBill)
+          .eq('bill_number', currentBill.bill_number);
+        
+        if (error) throw error;
+        
+        alert('Bill updated successfully!');
+      } catch (error) {
+        console.error('Error updating bill:', error);
+        alert('Error updating bill: ' + error.message);
+      }
+    }
+
+    // Show delete confirmation modal
+    function showDeleteConfirmation() {
+      if (!currentBill) return;
+      document.getElementById('confirmDeleteCheck').checked = false;
+      deleteModal.show();
+    }
+
+    // Delete bill from Supabase
+    async function deleteBill() {
+      if (!document.getElementById('confirmDeleteCheck').checked) {
+        alert('Please confirm you understand this action cannot be undone');
+        return;
+      }
+      
+      try {
+        const { error } = await supabase
+          .from('bills')
+          .delete()
+          .eq('bill_number', currentBill.bill_number);
+        
+        if (error) throw error;
+        
+        alert('Bill deleted successfully!');
+        deleteModal.hide();
+        document.getElementById('editBillCard').style.display = 'none';
+        document.getElementById('billSearch').value = '';
+        currentBill = null;
+      } catch (error) {
+        console.error('Error deleting bill:', error);
+        alert('Error deleting bill: ' + error.message);
+      }
+    }
+
+    // Generate professional invoice PDF
+    async function generateInvoicePDF() {
+      if (!currentBill) return;
+      
+      // Populate the hidden invoice template
+      document.getElementById('invoiceNumber').textContent = currentBill.bill_number;
+      document.getElementById('invoiceDate').textContent = new Date(currentBill.bill_date).toLocaleDateString('en-US', {
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric'
+      });
+      
+      document.getElementById('invoiceCustomerName').textContent = currentBill.customer?.name || '';
+      document.getElementById('invoiceCustomerPhone').textContent = currentBill.customer?.phone || '';
+      document.getElementById('invoiceCustomerAddress').textContent = 
+        `${currentBill.customer?.address || ''}\n${currentBill.customer?.city || ''}, ${currentBill.customer?.pincode || ''}`;
+      
+      document.getElementById('invoicePaymentMethod').textContent = currentBill.payment_method || 'Cash';
+      
+      // Add items to invoice
+      const invoiceItems = document.getElementById('invoiceItems');
+      invoiceItems.innerHTML = '';
+      
+      if (currentBill.items && currentBill.items.length > 0) {
+        currentBill.items.forEach(item => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${item.name}</td>
+            <td>₹${item.price.toFixed(2)}</td>
+            <td>${item.qty}</td>
+            <td>₹${item.total.toFixed(2)}</td>
+          `;
+          invoiceItems.appendChild(row);
+        });
+      }
+      
+      // Update totals
+      document.getElementById('invoiceSubtotal').textContent = currentBill.subtotal?.toFixed(2) || '0.00';
+      document.getElementById('invoiceDiscount').textContent = currentBill.discount?.toFixed(2) || '0.00';
+      document.getElementById('invoiceDelivery').textContent = currentBill.delivery_charges?.toFixed(2) || '0.00';
+      document.getElementById('invoiceGrandTotal').textContent = currentBill.grand_total?.toFixed(2) || '0.00';
+      document.getElementById('invoicePaid').textContent = currentBill.amount_paid?.toFixed(2) || '0.00';
+      document.getElementById('invoiceBalance').textContent = currentBill.balance?.toFixed(2) || '0.00';
+      document.getElementById('invoiceNotes').textContent = currentBill.notes || '';
+      
+      // Show the invoice template (temporarily)
+      const invoiceTemplate = document.getElementById('invoiceTemplate');
+      invoiceTemplate.style.display = 'block';
+      
+      // Create PDF
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // Get the invoice content as image
+      const canvas = await html2canvas(invoiceTemplate, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+      
+      // Add image to PDF
+      doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      // If the content is too long, add new pages
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      while (heightLeft >= pageHeight) {
+        position = heightLeft - pageHeight;
+        doc.addPage();
+        doc.addImage(imgData, 'PNG', 0, -position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      // Save the PDF
+      doc.save(`Invoice_${currentBill.bill_number}.pdf`);
+      
+      // Hide the invoice template again
+      invoiceTemplate.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

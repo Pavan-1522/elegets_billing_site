@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Bill - Elegets Electronics</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #3f37c9;
+      --dark: #0c0e1c;
+      --dark-light: #1a1d2e;
+      --light: #f8f9fa;
+      --success: #4cc9f0;
+      --warning: #f8961e;
+      --danger: #f72585;
+    }
+    
+    body {
+      background-color: var(--dark);
+      color: var(--light);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    
+    .navbar {
+      background-color: var(--dark-light);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .navbar-brand {
+      font-weight: 700;
+      color: var(--light);
+      display: flex;
+      align-items: center;
+    }
+    
+    .navbar-brand i {
+      color: var(--primary);
+      margin-right: 10px;
+    }
+    
+    .nav-link {
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-link:hover, .nav-link.active {
+      color: var(--light);
+    }
+    
+    .nav-link.active {
+      color: var(--primary);
+    }
+    
+    .card {
+      background-color: var(--dark-light);
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 1.5rem;
+      border-bottom: none;
+    }
+    
+    .form-control[readonly] {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--light);
+    }
+    label.form-label {
+      color: var(--light);
+      font-weight: 600;
+    }
+    
+    .table {
+      color: var(--light);
+      margin-bottom: 0;
+    }
+    
+    .table th {
+      background-color: var(--primary);
+      border-color: var(--primary-dark);
+    }
+    
+    .table td, .table th {
+      border-color: rgba(255, 255, 255, 0.1);
+      vertical-align: middle;
+    }
+    
+    .bill-summary {
+      background-color: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    
+    .bill-summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      color: var(--light);
+    }
+    
+    .bill-summary-item.total {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--success);
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .company-info {
+      background-color: rgba(67, 97, 238, 0.1);
+      color: white;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .bill-number {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+    
+    .text-success {
+      color: var(--success) !important;
+    }
+    
+    .text-primary {
+      color: var(--primary) !important;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .btn-success {
+      background-color: var(--success);
+      border: none;
+    }
+    
+    .btn-success:hover {
+      background-color: #3ab4d9;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#">
+        <i class="fas fa-microchip"></i>
+        <span>Elegets Electronics</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="dashboard.html"><i class="fas fa-home me-2"></i> Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="billing.html"><i class="fas fa-file-invoice-dollar me-2"></i> Create Bill</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="view_bill.html"><i class="fas fa-search me-2"></i> View Bill</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container my-4">
+    <h1 class="text-white mb-4"><i class="fas fa-file-invoice me-2"></i> View Bill</h1>
+    
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="mb-0"><i class="fas fa-search me-2"></i> Find Bill</h3>
+          </div>
+          <div class="card-body">
+            <div class="row mb-4">
+              <div class="col-md-8">
+                <label class="form-label">Enter Bill Number</label>
+                <input type="text" id="billNumberInput" class="form-control" placeholder="ELE001" required>
+              </div>
+              <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary w-100" id="fetchBillBtn">
+                  <i class="fas fa-search me-2"></i> Find Bill
+                </button>
+              </div>
+            </div>
+            
+            <!-- Bill Display Area (initially hidden) -->
+            <div id="billDisplay" style="display: none;">
+              <!-- Company Information -->
+              <div class="company-info mb-4">
+                <div class="row">
+                  <div class="col-md-6">
+                    <h5 class="text-primary">Elegets Electronics</h5>
+                    <p class="mb-1">GMRIT College, Rajam</p>
+                    <p class="mb-1">Andhra Pradesh - 532127</p>
+                  </div>
+                  <div class="col-md-6 text-md-end">
+                    <p class="mb-1"><i class="fas fa-phone me-2"></i> 6302085024</p>
+                    <p class="mb-1"><i class="fas fa-envelope me-2"></i> contact.elegets@gmail.com</p>
+                    <div class="bill-number">
+                      <span class="text-success">Bill No: </span><span id="billNoDisplay">ELE002</span>
+                    </div>
+                    <div class="bill-number">
+                      <span class="text-success">Date: </span><span id="billDateDisplay">15/06/2024</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Customer Information -->
+              <h5 class="mt-4 mb-3 text-primary"><i class="fas fa-user me-2"></i> Customer Information</h5>
+              <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" id="customerName" class="form-control" value="Modeli Payan Kumar" readonly>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Phone Number</label>
+                  <input type="tel" id="customerPhone" class="form-control" value="06302085024" readonly>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Email</label>
+                  <input type="email" id="customerEmail" class="form-control" value="macetipayankumar@gmail.com" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Address</label>
+                  <input type="text" id="customerAddress" class="form-control" value="gig boyshostel.mean.gmrit.sec.gate" readonly>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">City</label>
+                  <input type="text" id="customerCity" class="form-control" value="Rajam" readonly>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Pincode</label>
+                  <input type="text" id="customerPincode" class="form-control" value="532127" readonly>
+                </div>
+              </div>
+              
+              <!-- Bill Items Table -->
+              <h5 class="mt-4 mb-3 text-primary"><i class="fas fa-shopping-cart me-2"></i> Bill Items</h5>
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Product Name</th>
+                      <th>Price</th>
+                      <th>Qty</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody id="billItems">
+                    <tr>
+                      <td>1</td>
+                      <td>arduino uno r3 dip</td>
+                      <td>₹600.00</td>
+                      <td>10</td>
+                      <td>₹6000.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <!-- Bill Summary -->
+              <div class="row mt-4">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Additional Notes</label>
+                    <textarea id="additionalNotes" class="form-control" rows="3" readonly></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Payment Method</label>
+                    <input type="text" id="paymentMethod" class="form-control" value="Cash" readonly>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="bill-summary">
+                    <div class="bill-summary-item">
+                      <span>Subtotal:</span>
+                      <span>₹<span id="subtotal">6000.00</span></span>
+                    </div>
+                    <div class="bill-summary-item">
+                      <span>Discount:</span>
+                      <span>- ₹<span id="discountDisplay">100.00</span></span>
+                    </div>
+                    <div class="bill-summary-item">
+                      <span>Delivery Charges:</span>
+                      <span>+ ₹<span id="deliveryDisplay">0.00</span></span>
+                    </div>
+                    <div class="bill-summary-item total">
+                      <span>Grand Total:</span>
+                      <span>₹<span id="grandTotal">5002.00</span></span>
+                    </div>
+                    <div class="bill-summary-item">
+                      <span>Amount Paid:</span>
+                      <span>₹<span id="paidDisplay">5002.00</span></span>
+                    </div>
+                    <div class="bill-summary-item total">
+                      <span>Balance Due:</span>
+                      <span>₹<span id="balanceDisplay">0.00</span></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Download Button -->
+              <div class="d-flex justify-content-end mt-4">
+                <button class="btn btn-success" id="downloadBillBtn">
+                  <i class="fas fa-download me-2"></i> Download Bill
+                </button>
+              </div>
+            </div>
+            
+            <!-- Error Message (hidden by default) -->
+            <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;">
+              <i class="fas fa-exclamation-circle me-2"></i>
+              <span id="errorText">Bill not found. Please check the bill number and try again.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      // Show the bill display for demo purposes
+      document.getElementById('billDisplay').style.display = 'block';
+      
+      // Set up event listeners for the live version
+      document.getElementById('fetchBillBtn').addEventListener('click', fetchBill);
+      document.getElementById('downloadBillBtn').addEventListener('click', generatePDF);
+    });
+
+    // For demo purposes - in live version this would fetch from Supabase
+    function fetchBill() {
+      const billNumber = document.getElementById('billNumberInput').value.trim();
+      
+      if (!billNumber) {
+        showError('Please enter a bill number');
+        return;
+      }
+      
+      // In live version, this would fetch from Supabase
+      document.getElementById('billDisplay').style.display = 'block';
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+
+    function showError(message) {
+      document.getElementById('errorText').textContent = message;
+      document.getElementById('errorMessage').style.display = 'block';
+    }
+
+    // Generate PDF of the bill
+    async function generatePDF() {
+      // Show loading state
+      const btn = document.getElementById('downloadBillBtn');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating...';
+      
+      try {
+        // Create PDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Get the bill content as image using html2canvas
+        const element = document.getElementById('billDisplay');
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          backgroundColor: '#0c0e1c'
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 295; // A4 height in mm
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        
+        // Add image to PDF
+        doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        
+        // Save the PDF
+        const billNumber = document.getElementById('billNoDisplay').textContent;
+        doc.save(`${billNumber}.pdf`);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        alert('Error generating PDF: ' + error.message);
+      } finally {
+        // Reset button state
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+  </script>
+</body>
+</html>
