@@ -271,9 +271,6 @@
         <li class="nav-item">
           <a class="nav-link" href="add_products.html"><i class="fas fa-boxes me-2"></i> Products</a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="edit_product.html"><i class="fas fa-boxes me-2"></i> Products [Edit]</a>
-        </li>
       </ul>
       
       <!-- User dropdown on the right -->
@@ -830,32 +827,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Generate PDF of the bill
 // Generate PDF of the bill
-   async function generatePDF() {
-    // Colorful company details
+async function generatePDF() {
+    // Enhanced company details with styling
     const companyDetails = {
-        name: "ELEGETS ELECTRONICS",
-        address: "Flat No: 102, Vishaka Valley Heights1, Veterinary Colony Opp MRO Office",
-        city: "Visakhapatnam, Andhra Pradesh - 530040",
-        website: "www.gostore.app/elegets",
-        contactNumber: "+91 63020 85024",
-        email: "contact@elegets.com",
+        name: "Elegets Electronics",
+        address: "Flat No: 102, Vishaka Valley Heights1, Veterinary Colony Opp MRO Office, Visakhapatnam, Andhra Pradesh-530040",
+        website: "gostore.app/elegets",
+        contactNumber: "+91 6302085024",
+        email: "contact.elegets@gmail.com",
+        App_Name: "Elegets Electronics (Available on Play Store)",
         GSTIN: "36CAUPP0582Q1ZN",
-        tagline: "Premium Electronics & Gadgets",
-        established: "Est. 2023",
-        colors: {
-            primary: "#4361ee",
-            secondary: "#3a56d4",
-            accent: "#7209b7",
-            success: "#38a169",
-            warning: "#d69e2e",
-            danger: "#e53e3e",
-            lightBg: "#f8fafc"
-        }
+        tagline: "Your Trusted Electronics Partner"
     };
 
     // Gather bill data
     const invoiceNumber = currentBillNumber;
-    const invoiceDate = new Date(document.getElementById('billDate').value);
+    const invoiceDate = document.getElementById('billDate').value;
     const paymentMethod = document.getElementById('paymentMethod').value;
     const customerName = document.getElementById('customerName').value;
     const customerPhone = document.getElementById('customerPhone').value;
@@ -872,468 +859,377 @@ document.addEventListener('DOMContentLoaded', function() {
     const grandTotal = parseFloat(document.getElementById('grandTotal').textContent);
     const balance = parseFloat(document.getElementById('balanceDisplay').textContent);
 
-    // Create PDF container with compact professional styling
+    // Create PDF container with professional styling
     const pdfContainer = document.createElement('div');
     pdfContainer.style.width = '210mm';
     pdfContainer.style.minHeight = '297mm';
-    pdfContainer.style.padding = '0';
-    pdfContainer.style.fontFamily = "'Poppins', 'Helvetica Neue', Arial, sans-serif";
-    pdfContainer.style.color = '#2d3748';
+    pdfContainer.style.padding = '15mm';
+    pdfContainer.style.fontFamily = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+    pdfContainer.style.color = '#333';
     pdfContainer.style.background = '#fff';
-    pdfContainer.style.lineHeight = '1.4';
     
-    // Generate the HTML content
+    // Professional invoice design
     pdfContainer.innerHTML = `
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fredoka+One&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
             
-            .colorful-invoice {
+            .invoice-wrapper {
                 width: 100%;
                 max-width: 800px;
                 margin: 0 auto;
                 background: #fff;
                 position: relative;
+                box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+                border-radius: 8px;
                 overflow: hidden;
-                padding-bottom: 20px;
             }
             
-            /* Compact vibrant header */
+            /* Header with gradient */
             .invoice-header {
-                background: linear-gradient(135deg, ${companyDetails.colors.primary} 0%, ${companyDetails.colors.secondary} 100%);
-                padding: 25px 30px 20px;
+                background: linear-gradient(135deg, #4361ee 0%, #3a56d4 100%);
+                padding: 25px 40px;
                 color: white;
-                position: relative;
-                overflow: hidden;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                border-bottom: 4px solid ${companyDetails.colors.accent};
+                border-bottom: 5px solid rgba(255,255,255,0.1);
             }
             
-            .company-info {
+            .company-brand {
                 flex: 1;
             }
             
-            .company-name {
-                font-family: 'Fredoka One', cursive;
-                font-weight: 400;
-                font-size: 24px;
-                letter-spacing: 0.5px;
-                margin-bottom: 3px;
+            .company-brand h1 {
+                font-family: 'Poppins', sans-serif;
+                font-weight: 700;
+                font-size: 28px;
+                margin: 0 0 5px 0;
+                color: white;
             }
             
-            .company-details {
-                font-size: 10px;
+            .company-brand .tagline {
+                font-weight: 300;
                 opacity: 0.9;
-                line-height: 1.4;
+                font-size: 14px;
             }
             
             .invoice-title {
                 text-align: right;
             }
             
-            .invoice-title-text {
+            .invoice-title h2 {
                 font-family: 'Poppins', sans-serif;
-                font-weight: 700;
-                font-size: 28px;
+                font-weight: 600;
+                font-size: 24px;
+                margin: 0 0 5px 0;
                 color: white;
-                margin: 0;
-                line-height: 1;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             }
             
-            .invoice-number {
-                font-size: 14px;
-                font-weight: 500;
-                margin-top: 5px;
+            .invoice-title .invoice-number {
+                font-size: 16px;
                 opacity: 0.9;
             }
             
-            /* Main content */
-            .invoice-content {
-                padding: 25px 30px;
-            }
-            
-            /* Compact two column layout */
-            .columns {
+            /* Company details section */
+            .company-details {
                 display: flex;
-                margin-bottom: 20px;
-                gap: 15px;
+                padding: 25px 40px;
+                background: #f9fafe;
+                border-bottom: 1px solid #e0e6f7;
             }
             
-            .column {
+            .company-info {
                 flex: 1;
-                background: ${companyDetails.colors.lightBg};
-                border-radius: 8px;
-                padding: 15px;
-                border-left: 4px solid ${companyDetails.colors.primary};
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             }
             
-            .section-title {
+            .company-info h3 {
                 font-family: 'Poppins', sans-serif;
                 font-weight: 600;
+                font-size: 16px;
+                color: #4361ee;
+                margin: 0 0 15px 0;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            
+            .company-info p {
+                margin: 5px 0;
                 font-size: 14px;
-                color: ${companyDetails.colors.primary};
-                margin-bottom: 12px;
-                display: flex;
-                align-items: center;
-                padding-bottom: 5px;
-                border-bottom: 1px dashed #e2e8f0;
+                color: #555;
             }
             
-            .section-title:before {
-                content: '';
-                display: inline-block;
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background: ${companyDetails.colors.accent};
-                margin-right: 8px;
-            }
-            
-            .info-grid {
-                display: grid;
-                grid-template-columns: 80px 1fr;
-                gap: 8px;
-                font-size: 12px;
-            }
-            
-            .info-label {
-                color: #718096;
-                font-weight: 500;
-            }
-            
-            .info-value {
-                color: #2d3748;
-                word-break: break-word;
-            }
-            
-            /* Compact items table */
-            .items-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin: 20px 0;
-                font-size: 12px;
-                border-radius: 6px;
-                overflow: hidden;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            }
-            
-            .items-table thead th {
-                background: ${companyDetails.colors.primary};
-                color: white;
-                padding: 10px 12px;
-                text-align: left;
+            .company-info .highlight {
+                color: #4361ee;
                 font-weight: 600;
-                font-size: 12px;
             }
             
-            .items-table tbody td {
-                padding: 10px 12px;
-                border-bottom: 1px solid #edf2f7;
-                color: #4a5568;
-                background: white;
+            /* Customer details */
+            .customer-details {
+                padding: 25px 40px;
+                display: flex;
+                justify-content: space-between;
             }
             
-            .items-table tbody tr:nth-child(even) td {
-                background: ${companyDetails.colors.lightBg};
+            .bill-to {
+                flex: 1;
             }
             
-            .text-right {
+            .bill-to h3 {
+                font-family: 'Poppins', sans-serif;
+                font-weight: 600;
+                font-size: 16px;
+                color: #4361ee;
+                margin: 0 0 15px 0;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+            }
+            
+            .bill-to p {
+                margin: 5px 0;
+                font-size: 14px;
+            }
+            
+            .invoice-meta {
                 text-align: right;
             }
             
-            .text-center {
+            .invoice-meta p {
+                margin: 5px 0;
+                font-size: 14px;
+            }
+            
+            .invoice-meta .highlight {
+                font-weight: 600;
+                color: #4361ee;
+            }
+            
+            /* Items table */
+            .items-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 0 0 30px 0;
+            }
+            
+            .items-table thead tr {
+                background: #4361ee;
+                color: white;
+            }
+            
+            .items-table th {
+                padding: 12px 15px;
+                text-align: left;
+                font-weight: 600;
+                font-size: 14px;
+            }
+            
+            .items-table td {
+                padding: 12px 15px;
+                border-bottom: 1px solid #e0e6f7;
+                font-size: 14px;
+            }
+            
+            .items-table tr:last-child td {
+                border-bottom: none;
+            }
+            
+            .items-table .text-right {
+                text-align: right;
+            }
+            
+            .items-table .text-center {
                 text-align: center;
             }
             
-            /* Compact summary section */
-            .summary-section {
+            /* Summary section */
+            .summary-wrapper {
                 display: flex;
                 justify-content: flex-end;
-                margin-top: 15px;
+                margin-bottom: 30px;
             }
             
             .summary {
-                width: 250px;
-                background: white;
+                width: 300px;
                 border-radius: 8px;
-                padding: 15px;
-                border: 1px solid #e2e8f0;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                overflow: hidden;
+                box-shadow: 0 3px 15px rgba(0,0,0,0.05);
             }
             
             .summary-row {
                 display: flex;
                 justify-content: space-between;
-                margin-bottom: 8px;
-                font-size: 12px;
+                padding: 12px 20px;
+                background: #f9fafe;
+                border-bottom: 1px solid #e0e6f7;
             }
             
-            .summary-label {
-                color: #718096;
-            }
-            
-            .summary-value {
-                color: #2d3748;
-                font-weight: 500;
-            }
-            
-            .summary-divider {
-                height: 1px;
-                background: #e2e8f0;
-                margin: 10px 0;
-            }
-            
-            .summary-total {
-                font-weight: 700;
-                color: ${companyDetails.colors.primary};
-            }
-            
-            .summary-balance {
-                font-weight: 700;
-                color: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
-            }
-            
-            /* Payment status */
-            .payment-status {
-                display: inline-block;
-                padding: 3px 10px;
-                border-radius: 12px;
-                font-size: 10px;
-                font-weight: 600;
-                background: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
+            .summary-row.total {
+                background: #4361ee;
                 color: white;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            
-            /* Notes section */
-            .notes-section {
-                margin-top: 20px;
-                padding: 15px;
-                background: ${companyDetails.colors.lightBg};
-                border-radius: 8px;
-                border-left: 3px solid ${companyDetails.colors.accent};
-                font-size: 12px;
-            }
-            
-            .notes-title {
-                font-family: 'Poppins', sans-serif;
                 font-weight: 600;
+            }
+            
+            .summary-row.balance {
+                background: #f72585;
+                color: white;
+                font-weight: 600;
+            }
+            
+            /* Notes and footer */
+            .notes {
+                padding: 0 40px 20px;
+                font-size: 13px;
+            }
+            
+            .notes h4 {
+                font-family: 'Poppins', sans-serif;
+                color: #4361ee;
+                margin: 0 0 10px 0;
                 font-size: 14px;
-                color: ${companyDetails.colors.primary};
-                margin-bottom: 8px;
-                display: flex;
-                align-items: center;
             }
             
-            .notes-title:before {
-                content: '•';
-                color: ${companyDetails.colors.accent};
-                margin-right: 8px;
-                font-size: 16px;
-            }
-            
-            /* Footer */
-            .invoice-footer {
-                margin-top: 25px;
-                padding-top: 15px;
-                border-top: 1px dashed #cbd5e0;
+            .footer {
+                padding: 20px 40px;
                 text-align: center;
-                font-size: 10px;
-                color: #a0aec0;
+                font-size: 12px;
+                color: #888;
+                border-top: 1px solid #e0e6f7;
+                background: #f9fafe;
             }
             
             .thank-you {
-                font-family: 'Poppins', sans-serif;
-                font-weight: 500;
-                color: ${companyDetails.colors.primary};
-                margin-top: 20px;
                 text-align: center;
-                font-size: 13px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
+                padding: 20px 0;
+                font-style: italic;
+                color: #4361ee;
+                font-weight: 600;
             }
             
-            /* Utility classes */
-            .mt-10 {
-                margin-top: 10px;
-            }
-            
-            .mb-5 {
-                margin-bottom: 5px;
+            .payment-status {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                background: #4cc9f0;
+                color: white;
             }
         </style>
         
-        <div class="colorful-invoice">
-            <!-- Compact header with company info and invoice title -->
+        <div class="invoice-wrapper">
+            <!-- Header with gradient -->
             <div class="invoice-header">
-                <div class="company-info">
-                    <div class="company-name">${companyDetails.name}</div>
-                    <div class="company-details">
-                        ${companyDetails.address}<br>
-                        ${companyDetails.city}<br>
-                        ${companyDetails.contactNumber} | ${companyDetails.email}
-                    </div>
+                <div class="company-brand">
+                    <h1>${companyDetails.name}</h1>
+                    <div class="tagline">${companyDetails.tagline}</div>
                 </div>
                 <div class="invoice-title">
-                    <div class="invoice-title-text">INVOICE</div>
+                    <h2>TAX INVOICE</h2>
                     <div class="invoice-number">#${invoiceNumber}</div>
-                    <div class="payment-status mt-10">${balance <= 0 ? 'PAID' : 'PENDING'}</div>
                 </div>
             </div>
             
-            <!-- Main content -->
-            <div class="invoice-content">
-                <!-- Two column layout -->
-                <div class="columns">
-                    <div class="column">
-                        <div class="section-title">Bill To</div>
-                        <div class="info-grid">
-                            <div class="info-label">Name</div>
-                            <div class="info-value"><strong>${customerName}</strong></div>
-                            
-                            ${customerAddress ? `
-                                <div class="info-label">Address</div>
-                                <div class="info-value">${customerAddress}</div>
-                            ` : ''}
-                            
-                            <div class="info-label">City/Pincode</div>
-                            <div class="info-value">${customerCity}${customerPincode ? ` - ${customerPincode}` : ''}</div>
-                            
-                            ${customerPhone ? `
-                                <div class="info-label">Contact</div>
-                                <div class="info-value">${customerPhone}</div>
-                            ` : ''}
-                            
-                            ${customerEmail ? `
-                                <div class="info-label">Email</div>
-                                <div class="info-value">${customerEmail}</div>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="column">
-                        <div class="section-title">Invoice Details</div>
-                        <div class="info-grid">
-                            <div class="info-label">Invoice Date</div>
-                            <div class="info-value">${invoiceDate.toLocaleDateString('en-IN')}</div>
-                            
-                            <div class="info-label">Payment Method</div>
-                            <div class="info-value"><strong>${paymentMethod}</strong></div>
-                            
-                            <div class="info-label">GSTIN</div>
-                            <div class="info-value">${companyDetails.GSTIN}</div>
-                            
-                            <div class="info-label">Status</div>
-                            <div class="info-value">
-                                <span class="payment-status">${balance <= 0 ? 'Paid' : 'Due'}</span>
-                            </div>
-                        </div>
-                    </div>
+            <!-- Company details -->
+            <div class="company-details">
+                <div class="company-info">
+                    <h3>Company Information</h3>
+                    <p><span class="highlight">Address:</span> ${companyDetails.address}</p>
+                    <p><span class="highlight">Phone:</span> ${companyDetails.contactNumber}</p>
+                    <p><span class="highlight">Email:</span> ${companyDetails.email}</p>
+                    <p><span class="highlight">GSTIN:</span> ${companyDetails.GSTIN}</p>
+                    <p><span class="highlight">App:</span> ${companyDetails.App_Name}</p>
+                </div>
+            </div>
+            
+            <!-- Customer details -->
+            <div class="customer-details">
+                <div class="bill-to">
+                    <h3>Bill To</h3>
+                    <p><strong>${customerName}</strong></p>
+                    <p>${customerAddress}</p>
+                    <p>${customerCity} - ${customerPincode}</p>
+                    <p>Phone: ${customerPhone}</p>
+                    <p>Email: ${customerEmail}</p>
                 </div>
                 
-                <!-- Items table -->
-                <table class="items-table">
-                    <thead>
+                <div class="invoice-meta">
+                    <p><span class="highlight">Invoice Date:</span> ${new Date(invoiceDate).toLocaleDateString('en-IN')}</p>
+                    <p><span class="highlight">Payment Method:</span> ${paymentMethod}</p>
+                    <p><span class="highlight">Status:</span> <span class="payment-status">${balance <= 0 ? 'PAID' : 'PENDING'}</span></p>
+                </div>
+            </div>
+            
+            <!-- Items table -->
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Description</th>
+                        <th class="text-right">Unit Price</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${bill.map((item, index) => `
                         <tr>
-                            <th>Item Description</th>
-                            <th class="text-right">Price</th>
-                            <th class="text-center">Qty</th>
-                            <th class="text-right">Amount</th>
+                            <td>${index + 1}</td>
+                            <td>${item.name}</td>
+                            <td class="text-right">₹${item.price.toFixed(2)}</td>
+                            <td class="text-center">${item.qty}</td>
+                            <td class="text-right">₹${item.total.toFixed(2)}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        ${bill.map((item, index) => `
-                            <tr>
-                                <td>${item.name}</td>
-                                <td class="text-right">₹${item.price.toFixed(2)}</td>
-                                <td class="text-center">${item.qty}</td>
-                                <td class="text-right">₹${item.total.toFixed(2)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                
-                <!-- Compact summary section -->
-                <div class="summary-section">
-                    <div class="summary">
-                        <div class="summary-row">
-                            <span class="summary-label">Subtotal:</span>
-                            <span class="summary-value">₹${subtotal.toFixed(2)}</span>
-                        </div>
-                        
-                        ${discount > 0 ? `
-                            <div class="summary-row">
-                                <span class="summary-label">Discount:</span>
-                                <span class="summary-value" style="color: ${companyDetails.colors.danger}">- ₹${discount.toFixed(2)}</span>
-                            </div>
-                        ` : ''}
-                        
-                        ${delivery > 0 ? `
-                            <div class="summary-row">
-                                <span class="summary-label">Delivery:</span>
-                                <span class="summary-value" style="color: ${companyDetails.colors.success}">+ ₹${delivery.toFixed(2)}</span>
-                            </div>
-                        ` : ''}
-                        
-                        <div class="summary-divider"></div>
-                        
-                        <div class="summary-row">
-                            <span class="summary-total">Grand Total:</span>
-                            <span class="summary-total">₹${grandTotal.toFixed(2)}</span>
-                        </div>
-                        
-                        <div class="summary-row">
-                            <span class="summary-label">Amount Paid:</span>
-                            <span class="summary-value">₹${paid.toFixed(2)}</span>
-                        </div>
-                        
-                        <div class="summary-divider"></div>
-                        
-                        <div class="summary-row">
-                            <span class="summary-total">Balance:</span>
-                            <span class="summary-balance">₹${Math.abs(balance).toFixed(2)} ${balance <= 0 ? 'Paid' : 'Due'}</span>
-                        </div>
+                    `).join('')}
+                </tbody>
+            </table>
+            
+            <!-- Summary -->
+            <div class="summary-wrapper">
+                <div class="summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>₹${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Discount:</span>
+                        <span>- ₹${discount.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Delivery Charges:</span>
+                        <span>+ ₹${delivery.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Grand Total:</span>
+                        <span>₹${grandTotal.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Amount Paid:</span>
+                        <span>₹${paid.toFixed(2)}</span>
+                    </div>
+                    <div class="summary-row ${balance <= 0 ? 'total' : 'balance'}">
+                        <span>Balance ${balance <= 0 ? 'Paid' : 'Due'}:</span>
+                        <span>₹${Math.abs(balance).toFixed(2)}</span>
                     </div>
                 </div>
-                
-                <!-- Notes section -->
-                ${notes ? `
-                    <div class="notes-section">
-                        <div class="notes-title">Customer Notes</div>
-                        <div class="notes-content">
-                            ${notes}
-                        </div>
-                    </div>
-                ` : ''}
-                
-                <!-- Terms section -->
-                <div class="notes-section mt-10">
-                    <div class="notes-title">Terms & Conditions</div>
-                    <div class="notes-content">
-                        <ul style="margin: 5px 0; padding-left: 15px; list-style-type: none;">
-                            <li>• All prices include GST as applicable</li>
-                            <li>• Payment due upon receipt unless otherwise noted</li>
-                            <li>• Returns accepted within 7 days with original packaging</li>
-                            <li>• Warranty claims require original invoice</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <!-- Thank you message -->
-                <div class="thank-you">
-                    Thank you for your business!
-                </div>
-                
-                <!-- Compact footer -->
-                <div class="invoice-footer">
-                    <div><strong>${companyDetails.name}</strong> | ${companyDetails.website} | ${companyDetails.contactNumber} | ${companyDetails.email}</div>
-                    <div class="mt-5">GSTIN: ${companyDetails.GSTIN} | ${companyDetails.established}</div>
-                </div>
+            </div>
+            
+            <!-- Notes -->
+            <div class="notes">
+                ${notes ? `<h4>Notes</h4><p>${notes}</p>` : ''}
+                <h4>Terms & Conditions</h4>
+                <p>1. Damaged or missing products must be accompanied by a proper unboxing video for return.<br>
+                2. Damaged items are eligible for replacement only, not returns.<br>
+                3. Warranty claims must be made within the specified warranty period.</p>
+            </div>
+            
+            <!-- Thank you -->
+            <div class="thank-you">
+                Thank you for your business!
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                <p>For any queries, please contact us at ${companyDetails.contactNumber} or ${companyDetails.email}</p>
+                <p>${companyDetails.name} © ${new Date().getFullYear()}</p>
             </div>
         </div>
     `;
@@ -1341,63 +1237,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add to document
     document.body.appendChild(pdfContainer);
     
-    // Initialize jsPDF with improved settings
+    // Generate PDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4',
-        filters: ['ASCIIHexEncode'],
-        putOnlyUsedFonts: true,
-        compress: true
+        format: 'a4'
     });
 
-    // Set PDF properties
-    doc.setProperties({
-        title: `Invoice ${invoiceNumber}`,
-        subject: 'Invoice from Elegets Electronics',
-        author: 'Elegets Electronics',
-        keywords: 'invoice, bill, receipt, electronics',
-        creator: 'Elegets Billing System'
-    });
-
-    // Generate canvas with improved quality
+    // Use html2canvas with improved settings
     const canvas = await html2canvas(pdfContainer, {
         scale: 2,
         logging: false,
         useCORS: true,
         allowTaint: true,
-        letterRendering: true,
-        backgroundColor: '#ffffff'
+        letterRendering: true
     });
 
-    const imgData = canvas.toDataURL('image/png', 1.0);
-    const imgWidth = doc.internal.pageSize.getWidth() - 20;
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    
-    // Calculate how many pages we need
-    let heightLeft = imgHeight;
-    let position = 10;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    
-    // Add first page
-    doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight, undefined, 'FAST');
-    heightLeft -= pageHeight;
-    
-    // Add new pages as needed
-    while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        doc.addPage();
-        doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight, undefined, 'FAST');
-        heightLeft -= pageHeight;
-    }
+    const imgData = canvas.toDataURL('image/png');
+    const imgWidth = 210; // A4 width in mm
+    const imgHeight = canvas.height * imgWidth / canvas.width;
 
+    // Add image to PDF
+    doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    
     // Remove temporary element
     document.body.removeChild(pdfContainer);
     
-    // Save PDF with professional filename
-    doc.save(`Elegets_Invoice_${invoiceNumber}.pdf`);
+    // Save PDF
+    doc.save(`${invoiceNumber}_Invoice.pdf`);
 }
 </script>
 </body>

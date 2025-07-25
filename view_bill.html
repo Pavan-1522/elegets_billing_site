@@ -206,6 +206,9 @@
         <li class="nav-item">
           <a class="nav-link" href="add_products.html"><i class="fas fa-boxes me-2"></i> Products</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="edit_product.html"><i class="fas fa-boxes me-2"></i> Products [Edit]</a>
+        </li>
       </ul>
       
       <!-- User dropdown on the right -->
@@ -546,30 +549,587 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Generate PDF of the bill
     async function generatePDF() {
-      // Create PDF
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      
-      // Get the bill content as image using html2canvas
-      const element = document.getElementById('billDisplay');
-      const canvas = await html2canvas(element, {
+    // Colorful company details
+    const companyDetails = {
+        name: "ELEGETS ELECTRONICS",
+        address: "Flat No: 102, Vishaka Valley Heights1, Veterinary Colony Opp MRO Office",
+        city: "Visakhapatnam, Andhra Pradesh - 530040",
+        website: "www.gostore.app/elegets",
+        contactNumber: "+91 63020 85024",
+        email: "contact@elegets.com",
+        GSTIN: "36CAUPP0582Q1ZN",
+        tagline: "Premium Electronics & Gadgets",
+        established: "Est. 2023",
+        colors: {
+            primary: "#4361ee",
+            secondary: "#3a56d4",
+            accent: "#7209b7",
+            success: "#38a169",
+            warning: "#d69e2e",
+            danger: "#e53e3e",
+            lightBg: "#f8fafc"
+        }
+    };
+
+    // Gather bill data from the displayed bill
+    const invoiceNumber = document.getElementById('billNoDisplay').textContent;
+    const invoiceDate = new Date(document.getElementById('billDateDisplay').textContent);
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const customerName = document.getElementById('customerName').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    const customerEmail = document.getElementById('customerEmail').value;
+    const customerAddress = document.getElementById('customerAddress').value;
+    const customerCity = document.getElementById('customerCity').value;
+    const customerPincode = document.getElementById('customerPincode').value;
+    const notes = document.getElementById('additionalNotes').value;
+    
+    const subtotal = parseFloat(document.getElementById('subtotal').textContent);
+    const discount = parseFloat(document.getElementById('discountDisplay').textContent);
+    const delivery = parseFloat(document.getElementById('deliveryDisplay').textContent);
+    const paid = parseFloat(document.getElementById('paidDisplay').textContent);
+    const grandTotal = parseFloat(document.getElementById('grandTotal').textContent);
+    const balance = parseFloat(document.getElementById('balanceDisplay').textContent);
+
+    // Get bill items from the table
+    const billItems = [];
+    const itemRows = document.querySelectorAll('#billItems tr');
+    itemRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        billItems.push({
+            name: cells[1].textContent,
+            price: parseFloat(cells[2].textContent.replace('₹', '')),
+            qty: parseInt(cells[3].textContent),
+            total: parseFloat(cells[4].textContent.replace('₹', ''))
+        });
+    });
+
+    // Create PDF container with compact professional styling
+    const pdfContainer = document.createElement('div');
+    pdfContainer.style.width = '210mm';
+    pdfContainer.style.minHeight = '297mm';
+    pdfContainer.style.padding = '0';
+    pdfContainer.style.fontFamily = "'Poppins', 'Helvetica Neue', Arial, sans-serif";
+    pdfContainer.style.color = '#2d3748';
+    pdfContainer.style.background = '#fff';
+    pdfContainer.style.lineHeight = '1.4';
+    
+    // Generate the HTML content
+    pdfContainer.innerHTML = `
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fredoka+One&display=swap');
+            
+            .colorful-invoice {
+                width: 100%;
+                max-width: 800px;
+                margin: 0 auto;
+                background: #fff;
+                position: relative;
+                overflow: hidden;
+                padding-bottom: 20px;
+            }
+            
+            /* Compact vibrant header */
+            .invoice-header {
+                background: linear-gradient(135deg, ${companyDetails.colors.primary} 0%, ${companyDetails.colors.secondary} 100%);
+                padding: 25px 30px 20px;
+                color: white;
+                position: relative;
+                overflow: hidden;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 4px solid ${companyDetails.colors.accent};
+            }
+            
+            .company-info {
+                flex: 1;
+            }
+            
+            .company-name {
+                font-family: 'Fredoka One', cursive;
+                font-weight: 400;
+                font-size: 24px;
+                letter-spacing: 0.5px;
+                margin-bottom: 3px;
+            }
+            
+            .company-details {
+                font-size: 10px;
+                opacity: 0.9;
+                line-height: 1.4;
+            }
+            
+            .invoice-title {
+                text-align: right;
+            }
+            
+            .invoice-title-text {
+                font-family: 'Poppins', sans-serif;
+                font-weight: 700;
+                font-size: 28px;
+                color: white;
+                margin: 0;
+                line-height: 1;
+                text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+            
+            .invoice-number {
+                font-size: 14px;
+                font-weight: 500;
+                margin-top: 5px;
+                opacity: 0.9;
+            }
+            
+            /* Main content */
+            .invoice-content {
+                padding: 25px 30px;
+            }
+            
+            /* Compact two column layout */
+            .columns {
+                display: flex;
+                margin-bottom: 20px;
+                gap: 15px;
+            }
+            
+            .column {
+                flex: 1;
+                background: ${companyDetails.colors.lightBg};
+                border-radius: 8px;
+                padding: 15px;
+                border-left: 4px solid ${companyDetails.colors.primary};
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+            
+            .section-title {
+                font-family: 'Poppins', sans-serif;
+                font-weight: 600;
+                font-size: 14px;
+                color: ${companyDetails.colors.primary};
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                padding-bottom: 5px;
+                border-bottom: 1px dashed #e2e8f0;
+            }
+            
+            .section-title:before {
+                content: '';
+                display: inline-block;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: ${companyDetails.colors.accent};
+                margin-right: 8px;
+            }
+            
+            .info-grid {
+                display: grid;
+                grid-template-columns: 80px 1fr;
+                gap: 8px;
+                font-size: 12px;
+            }
+            
+            .info-label {
+                color: #718096;
+                font-weight: 500;
+            }
+            
+            .info-value {
+                color: #2d3748;
+                word-break: break-word;
+            }
+            
+            /* Compact items table */
+            .items-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 20px 0;
+                font-size: 12px;
+                border-radius: 6px;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+            
+            .items-table thead th {
+                background: ${companyDetails.colors.primary};
+                color: white;
+                padding: 10px 12px;
+                text-align: left;
+                font-weight: 600;
+                font-size: 12px;
+            }
+            
+            .items-table tbody td {
+                padding: 10px 12px;
+                border-bottom: 1px solid #edf2f7;
+                color: #4a5568;
+                background: white;
+            }
+            
+            .items-table tbody tr:nth-child(even) td {
+                background: ${companyDetails.colors.lightBg};
+            }
+            
+            .text-right {
+                text-align: right;
+            }
+            
+            .text-center {
+                text-align: center;
+            }
+            
+            /* Compact summary section */
+            .summary-section {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 15px;
+            }
+            
+            .summary {
+                width: 250px;
+                background: white;
+                border-radius: 8px;
+                padding: 15px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            }
+            
+            .summary-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                font-size: 12px;
+            }
+            
+            .summary-label {
+                color: #718096;
+            }
+            
+            .summary-value {
+                color: #2d3748;
+                font-weight: 500;
+            }
+            
+            .summary-divider {
+                height: 1px;
+                background: #e2e8f0;
+                margin: 10px 0;
+            }
+            
+            .summary-total {
+                font-weight: 700;
+                color: ${companyDetails.colors.primary};
+            }
+            
+            .summary-balance {
+                font-weight: 700;
+                color: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
+            }
+            
+            /* Payment status */
+            .payment-status {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 12px;
+                font-size: 10px;
+                font-weight: 600;
+                background: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
+                color: white;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            /* Notes section */
+            .notes-section {
+                margin-top: 20px;
+                padding: 15px;
+                background: ${companyDetails.colors.lightBg};
+                border-radius: 8px;
+                border-left: 3px solid ${companyDetails.colors.accent};
+                font-size: 12px;
+            }
+            
+            .notes-title {
+                font-family: 'Poppins', sans-serif;
+                font-weight: 600;
+                font-size: 14px;
+                color: ${companyDetails.colors.primary};
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+            }
+            
+            .notes-title:before {
+                content: '•';
+                color: ${companyDetails.colors.accent};
+                margin-right: 8px;
+                font-size: 16px;
+            }
+            
+            /* Footer */
+            .invoice-footer {
+                margin-top: 25px;
+                padding-top: 15px;
+                border-top: 1px dashed #cbd5e0;
+                text-align: center;
+                font-size: 10px;
+                color: #a0aec0;
+            }
+            
+            .thank-you {
+                font-family: 'Poppins', sans-serif;
+                font-weight: 500;
+                color: ${companyDetails.colors.primary};
+                margin-top: 20px;
+                text-align: center;
+                font-size: 13px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            /* Utility classes */
+            .mt-10 {
+                margin-top: 10px;
+            }
+            
+            .mb-5 {
+                margin-bottom: 5px;
+            }
+        </style>
+        
+        <div class="colorful-invoice">
+            <!-- Compact header with company info and invoice title -->
+            <div class="invoice-header">
+                <div class="company-info">
+                    <div class="company-name">${companyDetails.name}</div>
+                    <div class="company-details">
+                        ${companyDetails.address}<br>
+                        ${companyDetails.city}<br>
+                        ${companyDetails.contactNumber} | ${companyDetails.email}
+                    </div>
+                </div>
+                <div class="invoice-title">
+                    <div class="invoice-title-text">INVOICE</div>
+                    <div class="invoice-number">#${invoiceNumber}</div>
+                    <div class="payment-status mt-10">${balance <= 0 ? 'PAID' : 'PENDING'}</div>
+                </div>
+            </div>
+            
+            <!-- Main content -->
+            <div class="invoice-content">
+                <!-- Two column layout -->
+                <div class="columns">
+                    <div class="column">
+                        <div class="section-title">Bill To</div>
+                        <div class="info-grid">
+                            <div class="info-label">Name</div>
+                            <div class="info-value"><strong>${customerName}</strong></div>
+                            
+                            ${customerAddress ? `
+                                <div class="info-label">Address</div>
+                                <div class="info-value">${customerAddress}</div>
+                            ` : ''}
+                            
+                            <div class="info-label">City/Pincode</div>
+                            <div class="info-value">${customerCity}${customerPincode ? ` - ${customerPincode}` : ''}</div>
+                            
+                            ${customerPhone ? `
+                                <div class="info-label">Contact</div>
+                                <div class="info-value">${customerPhone}</div>
+                            ` : ''}
+                            
+                            ${customerEmail ? `
+                                <div class="info-label">Email</div>
+                                <div class="info-value">${customerEmail}</div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="column">
+                        <div class="section-title">Invoice Details</div>
+                        <div class="info-grid">
+                            <div class="info-label">Invoice Date</div>
+                            <div class="info-value">${invoiceDate.toLocaleDateString('en-IN')}</div>
+                            
+                            <div class="info-label">Payment Method</div>
+                            <div class="info-value"><strong>${paymentMethod}</strong></div>
+                            
+                            <div class="info-label">GSTIN</div>
+                            <div class="info-value">${companyDetails.GSTIN}</div>
+                            
+                            <div class="info-label">Status</div>
+                            <div class="info-value">
+                                <span class="payment-status">${balance <= 0 ? 'Paid' : 'Due'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Items table -->
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Item Description</th>
+                            <th class="text-right">Price</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${billItems.map((item, index) => `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td class="text-right">₹${item.price.toFixed(2)}</td>
+                                <td class="text-center">${item.qty}</td>
+                                <td class="text-right">₹${item.total.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <!-- Compact summary section -->
+                <div class="summary-section">
+                    <div class="summary">
+                        <div class="summary-row">
+                            <span class="summary-label">Subtotal:</span>
+                            <span class="summary-value">₹${subtotal.toFixed(2)}</span>
+                        </div>
+                        
+                        ${discount > 0 ? `
+                            <div class="summary-row">
+                                <span class="summary-label">Discount:</span>
+                                <span class="summary-value" style="color: ${companyDetails.colors.danger}">- ₹${discount.toFixed(2)}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${delivery > 0 ? `
+                            <div class="summary-row">
+                                <span class="summary-label">Delivery:</span>
+                                <span class="summary-value" style="color: ${companyDetails.colors.success}">+ ₹${delivery.toFixed(2)}</span>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="summary-divider"></div>
+                        
+                        <div class="summary-row">
+                            <span class="summary-total">Grand Total:</span>
+                            <span class="summary-total">₹${grandTotal.toFixed(2)}</span>
+                        </div>
+                        
+                        <div class="summary-row">
+                            <span class="summary-label">Amount Paid:</span>
+                            <span class="summary-value">₹${paid.toFixed(2)}</span>
+                        </div>
+                        
+                        <div class="summary-divider"></div>
+                        
+                        <div class="summary-row">
+                            <span class="summary-total">Balance:</span>
+                            <span class="summary-balance">₹${Math.abs(balance).toFixed(2)} ${balance <= 0 ? 'Paid' : 'Due'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notes section -->
+                ${notes ? `
+                    <div class="notes-section">
+                        <div class="notes-title">Customer Notes</div>
+                        <div class="notes-content">
+                            ${notes}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Terms section -->
+                <div class="notes-section mt-10">
+                    <div class="notes-title">Terms & Conditions</div>
+                    <div class="notes-content">
+                        <ul style="margin: 5px 0; padding-left: 15px; list-style-type: none;">
+                            <li>• All prices include GST as applicable</li>
+                            <li>• Payment due upon receipt unless otherwise noted</li>
+                            <li>• Returns accepted within 7 days with original packaging</li>
+                            <li>• Warranty claims require original invoice</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Thank you message -->
+                <div class="thank-you">
+                    Thank you for your business!
+                </div>
+                
+                <!-- Compact footer -->
+                <div class="invoice-footer">
+                    <div><strong>${companyDetails.name}</strong> | ${companyDetails.website} | ${companyDetails.contactNumber} | ${companyDetails.email}</div>
+                    <div class="mt-5">GSTIN: ${companyDetails.GSTIN} | ${companyDetails.established}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add to document
+    document.body.appendChild(pdfContainer);
+    
+    // Initialize jsPDF with improved settings
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        filters: ['ASCIIHexEncode'],
+        putOnlyUsedFonts: true,
+        compress: true
+    });
+
+    // Set PDF properties
+    doc.setProperties({
+        title: `Invoice ${invoiceNumber}`,
+        subject: 'Invoice from Elegets Electronics',
+        author: 'Elegets Electronics',
+        keywords: 'invoice, bill, receipt, electronics',
+        creator: 'Elegets Billing System'
+    });
+
+    // Generate canvas with improved quality
+    const canvas = await html2canvas(pdfContainer, {
         scale: 2,
         logging: false,
-        useCORS: true
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      
-      // Add image to PDF
-      doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      
-      // Save the PDF
-      const billNumber = document.getElementById('billNoDisplay').textContent;
-      doc.save(`${billNumber}.pdf`);
+        useCORS: true,
+        allowTaint: true,
+        letterRendering: true,
+        backgroundColor: '#ffffff'
+    });
+
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const imgWidth = doc.internal.pageSize.getWidth() - 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // Calculate how many pages we need
+    let heightLeft = imgHeight;
+    let position = 10;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    // Add first page
+    doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight, undefined, 'FAST');
+    heightLeft -= pageHeight;
+    
+    // Add new pages as needed
+    while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        doc.addPage();
+        doc.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight, undefined, 'FAST');
+        heightLeft -= pageHeight;
     }
+
+    // Remove temporary element
+    document.body.removeChild(pdfContainer);
+    
+    // Save PDF with professional filename
+    doc.save(`Elegets_Invoice_${invoiceNumber}.pdf`);
+  }
   </script>
 </body>
 </html>
