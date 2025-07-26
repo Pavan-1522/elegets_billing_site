@@ -196,6 +196,16 @@
           <div class="stat-label">Total Payments</div>
         </div>
       </div>
+
+      <div class="col-md-4">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-rupee-sign"></i>
+          </div>
+          <div class="stat-value" id="PendingPayments">₹0</div>
+          <div class="stat-label">Pending Payments</div>
+        </div>
+      </div>
     </div>
     
     <!-- Quick Actions -->
@@ -336,61 +346,77 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load dashboard data
     document.addEventListener('DOMContentLoaded', async function() {
-      try {
-        // Load total components count
-        const { count: componentsCount } = await supabase
-          .from('products')
-          .select('*', { count: 'exact', head: true });
-        
-        document.getElementById('totalComponents').textContent = componentsCount || 0;
-        
-        // Load total bills count and payments sum
-        const { count: billsCount, data: billsData } = await supabase
-          .from('bills')
-          .select('amount_paid', { count: 'exact' });
-        
-        document.getElementById('totalBills').textContent = billsCount || 0;
-        
-        // Calculate total payments
-        const totalPayments = billsData?.reduce((sum, bill) => sum + (bill.amount_paid || 0), 0) || 0;
-        document.getElementById('totalPayments').textContent = '₹' + totalPayments.toLocaleString('en-IN');
-        
-        // Load recent bills (last 5)
-        const { data: recentBills } = await supabase
-          .from('bills')
-          .select('bill_number, bill_date, customer, grand_total, status')
-          .order('bill_date', { ascending: false })
-          .limit(5);
-        
-        const recentBillsTable = document.getElementById('recentBills');
-        recentBillsTable.innerHTML = '';
-        
-        if (recentBills && recentBills.length > 0) {
-          recentBills.forEach(bill => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td><a href="edit-bill.html?bill=${bill.bill_number}" class="text-primary">${bill.bill_number}</a></td>
-              <td>${new Date(bill.bill_date).toLocaleDateString()}</td>
-              <td>${bill.customer?.name || 'N/A'}</td>
-              <td>₹${bill.grand_total?.toFixed(2) || '0.00'}</td>
-              <td><span class="badge ${bill.status === 'paid' ? 'bg-success' : 'bg-warning'}">${bill.status || 'pending'}</span></td>
-            `;
-            recentBillsTable.appendChild(row);
-          });
-        } else {
-          recentBillsTable.innerHTML = `
-            <tr>
-              <td colspan="5" class="text-center">No recent bills found</td>
-            </tr>
-          `;
-        }
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        document.getElementById('totalComponents').textContent = 'Error';
-        document.getElementById('totalBills').textContent = 'Error';
-        document.getElementById('totalPayments').textContent = 'Error';
-      }
-    });
+  try {
+    // Load total components count
+    const { count: componentsCount } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true });
+    
+    document.getElementById('totalComponents').textContent = componentsCount || 0;
+    
+    // Load total bills count and payments data
+    const { count: billsCount, data: billsData } = await supabase
+      .from('bills')
+      .select('amount_paid, balance', { count: 'exact' });
+    
+    document.getElementById('totalBills').textContent = billsCount || 0;
+    
+    // Calculate total payments
+    const totalPayments = billsData?.reduce((sum, bill) => sum + (bill.amount_paid || 0), 0) || 0;
+    document.getElementById('totalPayments').textContent = '₹' + totalPayments.toLocaleString('en-IN');
+
+    // Calculate pending payments (sum of all balances where balance > 0)
+    const pendingPayments = billsData?.reduce((sum, bill) => {
+      const balance = bill.balance || 0;
+      return balance > 0 ? sum + balance : sum;
+    }, 0) || 0;
+    document.getElementById('PendingPayments').textContent = '₹' + pendingPayments.toLocaleString('en-IN');
+    
+    // Load recent bills (last 5)
+    const { data: recentBills } = await supabase
+      .from('bills')
+      .select('bill_number, bill_date, customer, grand_total, status')
+      .order('bill_date', { ascending: false })
+      .limit(5);
+    
+    const recentBillsTable = document.getElementById('recentBills');
+    recentBillsTable.innerHTML = '';
+    
+    if (recentBills?.length > 0) {
+      recentBills.forEach(bill => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><a href="edit-bill.html?bill=${bill.bill_number}" class="text-primary">${bill.bill_number}</a></td>
+          <td>${new Date(bill.bill_date).toLocaleDateString()}</td>
+          <td>${bill.customer?.name || 'N/A'}</td>
+          <td>₹${bill.grand_total?.toFixed(2) || '0.00'}</td>
+          <td><span class="badge ${bill.status === 'paid' ? 'bg-success' : 'bg-warning'}">${bill.status || 'pending'}</span></td>
+        `;
+        recentBillsTable.appendChild(row);
+      });
+    } else {
+      recentBillsTable.innerHTML = `
+        <tr>
+          <td colspan="5" class="text-center">No recent bills found</td>
+        </tr>
+      `;
+    }
+  } catch (error) {
+    console.error('Error loading dashboard data:', error);
+    document.getElementById('totalComponents').textContent = 'Error';
+    document.getElementById('totalBills').textContent = 'Error';
+    document.getElementById('totalPayments').textContent = 'Error';
+    document.getElementById('PendingPayments').textContent = 'Error';
+    
+    // Show error in recent bills table too
+    const recentBillsTable = document.getElementById('recentBills');
+    recentBillsTable.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-danger">Error loading data</td>
+      </tr>
+    `;
+  }
+});
   </script>
 </body>
 </html>
