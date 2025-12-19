@@ -4,32 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Elegets Electronics</title>
+  
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://oborglvlgafnglzqczot.supabase.co">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <style>
     :root {
       --primary: #4361ee;
-      --primary-dark: #3a56d4;
       --secondary: #3f37c9;
       --dark: #0c0e1c;
       --dark-light: #1a1d2e;
       --light: #f8f9fa;
-      --success: #4cc9f0;
-      --warning: #f8961e;
-      --danger: #f72585;
     }
     
     body {
       background-color: var(--dark);
       color: var(--light);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       min-height: 100vh;
     }
     
     .navbar {
       background-color: var(--dark-light);
-      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
     
@@ -40,6 +40,7 @@
       border-radius: 10px;
       margin-bottom: 2rem;
       text-align: center;
+      box-shadow: 0 4px 20px rgba(67, 97, 238, 0.3);
     }
     
     .stat-card {
@@ -47,8 +48,9 @@
       border-radius: 10px;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
-      transition: all 0.3s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
       border-left: 4px solid var(--primary);
+      height: 100%;
     }
     
     .stat-card:hover {
@@ -66,15 +68,9 @@
       font-size: 2.5rem;
       font-weight: 700;
       margin-bottom: 0.5rem;
-    }
-    
-    .stat-label {
-      color: rgba(255,255,255,0.7);
-      font-size: 1rem;
-    }
-    
-    .quick-actions {
-      margin-top: 2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .action-card {
@@ -84,183 +80,160 @@
       margin-bottom: 1.5rem;
       text-align: center;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
+      height: 100%;
+      border: 1px solid transparent;
     }
     
     .action-card:hover {
-      background-color: var(--primary);
-      color: white;
+      background-color: var(--dark-light);
+      border-color: var(--primary);
+      transform: translateY(-3px);
     }
     
     .action-card:hover .action-icon {
-      color: white;
+      transform: scale(1.1);
     }
-    
+
     .action-icon {
       font-size: 2rem;
       margin-bottom: 1rem;
       color: var(--primary);
+      transition: transform 0.2s;
+    }
+    
+    /* Loading Skeleton Animation */
+    .skeleton {
+      background: linear-gradient(90deg, #1a1d2e 25%, #252a40 50%, #1a1d2e 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+      border-radius: 4px;
+      color: transparent !important;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
   </style>
 </head>
 <body>
-  <!-- Navigation Bar -->
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container-fluid">
-    <!-- Brand on the left -->
-    <a class="navbar-brand" href="#">
-      <i class="fas fa-microchip"></i>
-      <span>Elegets Electronics</span>
-    </a>
-    
-    <!-- Toggler button -->
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    
-    <!-- Collapsible content -->
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <!-- Navigation items centered -->
-      <ul class="navbar-nav mx-auto">
-        <li class="nav-item">
-          <a class="nav-link active" href="dashboard.html"><i class="fas fa-home me-2"></i> Dashboard</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="billing.html"><i class="fas fa-file-invoice-dollar me-2"></i> Billing</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="bill_edit.html"><i class="fas fa-edit me-2"></i> Edit Bill</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="add_products.html"><i class="fas fa-boxes me-2"></i> Products</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="edit_product.html"><i class="fas fa-boxes me-2"></i> Products [Edit]</a>
-        </li>
-      </ul>
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <i class="fas fa-microchip me-2"></i>Elegets
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
       
-      <!-- User dropdown on the right -->
-      <div class="d-flex">
-        <div class="dropdown">
-          <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
-            <i class="fas fa-user-circle me-2"></i>
-            <span id="usernameDisplay">pavan@elegets.com</span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
-          </ul>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-auto">
+          <li class="nav-item"><a class="nav-link active" href="dashboard.html"><i class="fas fa-home me-1"></i> Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="billing.html"><i class="fas fa-file-invoice-dollar me-1"></i> Billing</a></li>
+          <li class="nav-item"><a class="nav-link" href="bill_edit.html"><i class="fas fa-edit me-1"></i> Edit Bill</a></li>
+          <li class="nav-item"><a class="nav-link" href="add_products.html"><i class="fas fa-boxes me-1"></i> Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="edit_product.html"><i class="fas fa-boxes me-1"></i> Products [Edit]</a></li>
+        </ul>
+        
+        <div class="d-flex align-items-center">
+          <div class="dropdown">
+            <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" id="userDropdown" data-bs-toggle="dropdown">
+              <i class="fas fa-user-circle fa-lg"></i>
+              <span id="usernameDisplay" class="d-none d-md-inline">Loading...</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+              <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
-  <!-- Dashboard Content -->
   <div class="container my-4">
-    <!-- Dashboard Header -->
     <div class="dashboard-header">
-      <h1><i class="fas fa-tachometer-alt me-3"></i> Elegets Electronics Billing Desk</h1>
-      <p class="mb-0">Complete billing and inventory management system</p>
+      <h1 class="h2"><i class="fas fa-tachometer-alt me-2"></i> Billing Desk</h1>
+      <p class="mb-0 opacity-75">Overview & Quick Actions</p>
     </div>
     
-    <!-- Stats Cards -->
-    <div class="row">
-      <div class="col-md-4">
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-microchip"></i>
-          </div>
-          <div class="stat-value" id="totalComponents">0</div>
+          <div class="stat-icon"><i class="fas fa-microchip"></i></div>
+          <div class="stat-value skeleton" id="totalComponents">--</div>
           <div class="stat-label">Total Components</div>
         </div>
       </div>
       
-      <div class="col-md-4">
+      <div class="col-md-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-file-invoice"></i>
-          </div>
-          <div class="stat-value" id="totalBills">0</div>
+          <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
+          <div class="stat-value skeleton" id="totalBills">--</div>
           <div class="stat-label">Total Bills</div>
         </div>
       </div>
       
-      <div class="col-md-4">
+      <div class="col-md-6 col-lg-3">
         <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-rupee-sign"></i>
-          </div>
-          <div class="stat-value" id="totalPayments">₹0</div>
+          <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+          <div class="stat-value skeleton" id="totalPayments">--</div>
           <div class="stat-label">Total Payments</div>
         </div>
       </div>
 
-      <div class="col-md-4">
-        <div class="stat-card">
-          <div class="stat-icon">
-            <i class="fas fa-rupee-sign"></i>
-          </div>
-          <div class="stat-value" id="PendingPayments">₹0</div>
+      <div class="col-md-6 col-lg-3">
+        <div class="stat-card" style="border-left-color: var(--warning);">
+          <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-clock"></i></div>
+          <div class="stat-value skeleton" id="PendingPayments">--</div>
           <div class="stat-label">Pending Payments</div>
         </div>
       </div>
     </div>
     
-    <!-- Quick Actions -->
-    <h3 class="text-white mt-5 mb-4">Quick Actions</h3>
-    <div class="row quick-actions">
-      <div class="col-md-3">
+    <h4 class="text-white mt-5 mb-3 border-bottom border-secondary pb-2">Quick Actions</h4>
+    <div class="row g-4 quick-actions">
+      <div class="col-sm-6 col-lg-3">
         <div class="action-card" onclick="window.location.href='billing.html'">
-          <div class="action-icon">
-            <i class="fas fa-plus-circle"></i>
-          </div>
-          <h5>Create New Bill</h5>
+          <div class="action-icon"><i class="fas fa-plus-circle"></i></div>
+          <h5>Create Bill</h5>
         </div>
       </div>
-      
-      <div class="col-md-3">
+      <div class="col-sm-6 col-lg-3">
         <div class="action-card" onclick="window.location.href='bill_edit.html'">
-          <div class="action-icon">
-            <i class="fas fa-search"></i>
-          </div>
-          <h5>Find/Edit Bill</h5>
+          <div class="action-icon"><i class="fas fa-search"></i></div>
+          <h5>Find Bill</h5>
         </div>
       </div>
-      
-      <div class="col-md-3">
+      <div class="col-sm-6 col-lg-3">
         <div class="action-card" onclick="window.location.href='add_products.html'">
-          <div class="action-icon">
-            <i class="fas fa-box-open"></i>
-          </div>
+          <div class="action-icon"><i class="fas fa-box-open"></i></div>
           <h5>Manage Products</h5>
         </div>
       </div>
-      
-      <div class="col-md-3">
+      <div class="col-sm-6 col-lg-3">
         <div class="action-card" onclick="window.location.href='view_bill.html'">
-          <div class="action-icon">
-            <i class="fas fa-chart-bar"></i>
-          </div>
-          <h5>View Bills</h5>
+          <div class="action-icon"><i class="fas fa-chart-bar"></i></div>
+          <h5>View Reports</h5>
         </div>
       </div>
     </div>
     
-    <!-- Recent Bills (Optional) -->
     <div class="row mt-5">
       <div class="col-12">
-        <div class="card bg-dark-light">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="fas fa-history me-2"></i> Recent Bills</h5>
+        <div class="card bg-dark-light border-0">
+          <div class="card-header bg-transparent border-bottom border-secondary d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-white"><i class="fas fa-history me-2"></i> Recent Transactions</h5>
+            <a href="view_bill.html" class="btn btn-sm btn-outline-primary">View All</a>
           </div>
-          <div class="card-body">
+          <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-dark table-hover">
-                <thead>
+              <table class="table table-dark table-hover mb-0 align-middle">
+                <thead class="table-light text-dark">
                   <tr>
-                    <th>Bill No.</th>
+                    <th>Bill #</th>
                     <th>Date</th>
                     <th>Customer</th>
                     <th>Amount</th>
@@ -268,9 +241,11 @@
                   </tr>
                 </thead>
                 <tbody id="recentBills">
-                  <!-- Recent bills will be loaded here -->
                   <tr>
-                    <td colspan="5" class="text-center">Loading recent bills...</td>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                      <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                      Loading recent activity...
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -281,142 +256,167 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
   <script>
-    // Firebase configuration (same as login page)
-  const firebaseConfig = {
-  apiKey: "AIzaSyASjV5eTtSWFih3pP8aJKzztj7PsxEW3Sg",
-  authDomain: "elegets-bill-desk.firebaseapp.com",
-  projectId: "elegets-bill-desk",
-  storageBucket: "elegets-bill-desk.firebasestorage.app",
-  messagingSenderId: "716287582493",
-  appId: "1:716287582493:web:28e4e23ef312aefb77c1f4"
-};
+    // ==========================================
+    // 1. CONFIGURATION
+    // ==========================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyASjV5eTtSWFih3pP8aJKzztj7PsxEW3Sg",
+      authDomain: "elegets-bill-desk.firebaseapp.com",
+      projectId: "elegets-bill-desk",
+      storageBucket: "elegets-bill-desk.firebasestorage.app",
+      messagingSenderId: "716287582493",
+      appId: "1:716287582493:web:28e4e23ef312aefb77c1f4"
+    };
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
+    const supabaseUrl = 'https://oborglvlgafnglzqczot.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ib3JnbHZsZ2FmbmdsenFjem90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjE2MzEsImV4cCI6MjA2ODQ5NzYzMX0.dDt-_pcuEcyuvBlNvpMCspPXW04AU-KeFjIpQcWXXXk';
 
-  // Check authentication state
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      window.location.href = 'index.html';
-    }
-  });
-  // Handle user display and logout
-document.addEventListener('DOMContentLoaded', function() {
-  const auth = firebase.auth();
-  
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      // User is signed in
-      const displayName = user.displayName || user.email || 'User';
-      document.getElementById('usernameDisplay').textContent = displayName;
+    // Initialize Services
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // ==========================================
+    // 2. MAIN APP LOGIC
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', () => {
+      // Auth Guard
+      auth.onAuthStateChanged(user => {
+        if (!user) return window.location.href = 'index.html';
+        
+        updateUserUI(user);
+        initDashboard();
+      });
+
+      // Event Listeners
+      document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        auth.signOut().then(() => window.location.href = 'index.html');
+      });
+    });
+
+    function updateUserUI(user) {
+      const displayName = user.displayName || user.email?.split('@')[0] || 'Admin';
+      const userDisplay = document.getElementById('usernameDisplay');
+      if (userDisplay) userDisplay.textContent = displayName;
       
-      // Profile picture if available
       if (user.photoURL) {
         const userIcon = document.querySelector('#userDropdown i');
-        userIcon.classList.remove('fa-user-circle');
-        userIcon.style.backgroundImage = `url(${user.photoURL})`;
-        userIcon.style.backgroundSize = 'cover';
-        userIcon.style.width = '1.25em';
-        userIcon.style.height = '1.25em';
-        userIcon.style.borderRadius = '50%';
-        userIcon.style.display = 'inline-block';
+        if (userIcon) {
+          userIcon.className = ''; // Remove existing classes
+          userIcon.style.cssText = `
+            background-image: url(${user.photoURL});
+            background-size: cover;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+          `;
+        }
       }
     }
-  });
-  
-  // Handle logout
-  document.getElementById('logoutBtn').addEventListener('click', function(e) {
-    e.preventDefault();
-    auth.signOut().then(() => {
-      window.location.href = 'index.html';
-    });
-  });
-});
-    // Initialize Supabase client
-    const supabaseUrl = 'https://oborglvlgafnglzqczot.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ib3JnbHZsZ2FmbmdsenFjem90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5MjE2MzEsImV4cCI6MjA2ODQ5NzYzMX0.dDt-_pcuEcyuvBlNvpMCspPXW04AU-KeFjIpQcWXXXk';
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    // ==========================================
+    // 3. OPTIMIZED DATA FETCHING
+    // ==========================================
+    async function initDashboard() {
+      try {
+        // Parallel execution: Run all 3 queries at the same time
+        const [productsRes, billsRes, recentRes] = await Promise.all([
+          supabaseClient.from('products').select('*', { count: 'exact', head: true }),
+          supabaseClient.from('bills').select('amount_paid, balance'),
+          supabaseClient.from('bills').select('bill_number, bill_date, customer, grand_total, status')
+            .order('bill_date', { ascending: false })
+            .limit(5)
+        ]);
 
-    // Load dashboard data
-    document.addEventListener('DOMContentLoaded', async function() {
-  try {
-    // Load total components count
-    const { count: componentsCount } = await supabase
-      .from('products')
-      .select('*', { count: 'exact', head: true });
-    
-    document.getElementById('totalComponents').textContent = componentsCount || 0;
-    
-    // Load total bills count and payments data
-    const { count: billsCount, data: billsData } = await supabase
-      .from('bills')
-      .select('amount_paid, balance', { count: 'exact' });
-    
-    document.getElementById('totalBills').textContent = billsCount || 0;
-    
-    // Calculate total payments
-    const totalPayments = billsData?.reduce((sum, bill) => sum + (bill.amount_paid || 0), 0) || 0;
-    document.getElementById('totalPayments').textContent = '₹' + totalPayments.toLocaleString('en-IN');
+        // Process Products
+        updateStat('totalComponents', productsRes.count || 0);
 
-    // Calculate pending payments (sum of all balances where balance > 0)
-    const pendingPayments = billsData?.reduce((sum, bill) => {
-      const balance = bill.balance || 0;
-      return balance > 0 ? sum + balance : sum;
-    }, 0) || 0;
-    document.getElementById('PendingPayments').textContent = '₹' + pendingPayments.toLocaleString('en-IN');
-    
-    // Load recent bills (last 5)
-    const { data: recentBills } = await supabase
-      .from('bills')
-      .select('bill_number, bill_date, customer, grand_total, status')
-      .order('bill_date', { ascending: false })
-      .limit(5);
-    
-    const recentBillsTable = document.getElementById('recentBills');
-    recentBillsTable.innerHTML = '';
-    
-    if (recentBills?.length > 0) {
-      recentBills.forEach(bill => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><a href="edit-bill.html?bill=${bill.bill_number}" class="text-primary">${bill.bill_number}</a></td>
-          <td>${new Date(bill.bill_date).toLocaleDateString()}</td>
-          <td>${bill.customer?.name || 'N/A'}</td>
-          <td>₹${bill.grand_total?.toFixed(2) || '0.00'}</td>
-          <td><span class="badge ${bill.status === 'paid' ? 'bg-success' : 'bg-warning'}">${bill.status || 'pending'}</span></td>
-        `;
-        recentBillsTable.appendChild(row);
-      });
-    } else {
-      recentBillsTable.innerHTML = `
-        <tr>
-          <td colspan="5" class="text-center">No recent bills found</td>
-        </tr>
-      `;
+        // Process Financials (Client-side aggregation)
+        if (billsRes.data) {
+          updateStat('totalBills', billsRes.data.length);
+          
+          const totalPaid = billsRes.data.reduce((sum, b) => sum + (b.amount_paid || 0), 0);
+          const totalPending = billsRes.data.reduce((sum, b) => sum + (Math.max(0, b.balance || 0)), 0);
+          
+          updateStat('totalPayments', formatCurrency(totalPaid));
+          updateStat('PendingPayments', formatCurrency(totalPending));
+        }
+
+        // Process Recent Bills
+        renderRecentBills(recentRes.data || []);
+
+      } catch (error) {
+        console.error('Dashboard Error:', error);
+        document.querySelectorAll('.stat-value').forEach(el => {
+          el.classList.remove('skeleton');
+          el.textContent = 'ERR';
+          el.classList.add('text-danger');
+        });
+      }
     }
-  } catch (error) {
-    console.error('Error loading dashboard data:', error);
-    document.getElementById('totalComponents').textContent = 'Error';
-    document.getElementById('totalBills').textContent = 'Error';
-    document.getElementById('totalPayments').textContent = 'Error';
-    document.getElementById('PendingPayments').textContent = 'Error';
-    
-    // Show error in recent bills table too
-    const recentBillsTable = document.getElementById('recentBills');
-    recentBillsTable.innerHTML = `
-      <tr>
-        <td colspan="5" class="text-center text-danger">Error loading data</td>
-      </tr>
-    `;
-  }
-});
+
+    // ==========================================
+    // 4. HELPER FUNCTIONS
+    // ==========================================
+    function updateStat(id, value) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('skeleton');
+        el.textContent = value;
+      }
+    }
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function renderRecentBills(bills) {
+      const tbody = document.getElementById('recentBills');
+      tbody.innerHTML = '';
+
+      if (bills.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">No recent bills found</td></tr>`;
+        return;
+      }
+
+      const fragment = document.createDocumentFragment();
+      
+      bills.forEach(bill => {
+        const row = document.createElement('tr');
+        // Handle customer name variance (JSON object vs String)
+        let custName = 'Unknown';
+        if (bill.customer) {
+            custName = typeof bill.customer === 'object' ? (bill.customer.name || 'N/A') : bill.customer;
+        }
+
+        const statusClass = bill.status?.toLowerCase() === 'paid' ? 'bg-success' : 'bg-warning text-dark';
+        const dateStr = new Date(bill.bill_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+        row.innerHTML = `
+          <td><a href="bill_edit.html?bill=${bill.bill_number}" class="fw-bold text-decoration-none" style="color: var(--primary)">#${bill.bill_number}</a></td>
+          <td>${dateStr}</td>
+          <td>${custName}</td>
+          <td>${formatCurrency(bill.grand_total || 0)}</td>
+          <td><span class="badge ${statusClass} rounded-pill">${bill.status || 'Pending'}</span></td>
+        `;
+        fragment.appendChild(row);
+      });
+      
+      tbody.appendChild(fragment);
+    }
   </script>
 </body>
 </html>
