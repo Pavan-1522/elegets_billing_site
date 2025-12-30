@@ -1056,20 +1056,20 @@
                     background: #fff;
                     position: relative;
                     overflow: hidden;
-                    padding-bottom: 20px;
+                    padding-bottom: 10px; /* Reduced */
                 }
                 
                 /* Compact vibrant header */
                 .invoice-header {
                     background: linear-gradient(135deg, ${companyDetails.colors.primary} 0%, ${companyDetails.colors.secondary} 100%);
-                    padding: 12px;
+                    padding: 8px 12px; /* Reduced */
                     color: white;
                     position: relative;
                     overflow: hidden;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    border-bottom: 4px solid ${companyDetails.colors.accent};
+                    border-bottom: 3px solid ${companyDetails.colors.accent};
                 }
                 
                 .company-info {
@@ -1079,15 +1079,15 @@
                 .company-name {
                     font-family: 'Fredoka One', cursive;
                     font-weight: 400;
-                    font-size: 24px;
+                    font-size: 20px; /* Reduced from 24 */
                     letter-spacing: 0.5px;
-                    margin-bottom: 3px;
+                    margin-bottom: 0px;
                 }
                 
                 .company-details {
-                    font-size: 10px;
+                    font-size: 9px; /* Reduced */
                     opacity: 0.9;
-                    line-height: 1.4;
+                    line-height: 1.2;
                 }
                 
                 .invoice-title {
@@ -1097,7 +1097,7 @@
                 .invoice-title-text {
                     font-family: 'Poppins', sans-serif;
                     font-weight: 700;
-                    font-size: 28px;
+                    font-size: 22px; /* Reduced from 28 */
                     color: white;
                     margin: 0;
                     line-height: 1;
@@ -1105,59 +1105,60 @@
                 }
                 
                 .invoice-number {
-                    font-size: 14px;
+                    font-size: 12px; /* Reduced */
                     font-weight: 500;
-                    margin-top: 5px;
+                    margin-top: 2px;
                     opacity: 0.9;
                 }
                 
                 /* Main content */
                 .invoice-content {
-                  padding: 14px 16px;
+                  padding: 10px 12px; /* Reduced */
                 }
+
                 /* Compact two column layout */
                 .columns {
                     display: flex;
-                    margin-bottom: 20px;
-                    gap: 15px;
+                    margin-bottom: 10px; /* Reduced from 20 */
+                    gap: 10px; /* Reduced from 15 */
                 }
                 
                 .column {
                     flex: 1;
                     background: ${companyDetails.colors.lightBg};
-                    border-radius: 8px;
-                    padding: 15px;
-                    border-left: 4px solid ${companyDetails.colors.primary};
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    border-radius: 6px;
+                    padding: 8px 10px; /* Reduced from 15 */
+                    border-left: 3px solid ${companyDetails.colors.primary};
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
                 }
                 
                 .section-title {
                     font-family: 'Poppins', sans-serif;
                     font-weight: 600;
-                    font-size: 14px;
+                    font-size: 12px; /* Reduced */
                     color: ${companyDetails.colors.primary};
-                    margin-bottom: 12px;
+                    margin-bottom: 6px; /* Reduced */
                     display: flex;
                     align-items: center;
-                    padding-bottom: 5px;
+                    padding-bottom: 3px;
                     border-bottom: 1px dashed #e2e8f0;
                 }
                 
                 .section-title:before {
                     content: '';
                     display: inline-block;
-                    width: 6px;
-                    height: 6px;
+                    width: 5px;
+                    height: 5px;
                     border-radius: 50%;
                     background: ${companyDetails.colors.accent};
-                    margin-right: 8px;
+                    margin-right: 6px;
                 }
                 
                 .info-grid {
                     display: grid;
-                    grid-template-columns: 80px 1fr;
-                    gap: 8px;
-                    font-size: 12px;
+                    grid-template-columns: 70px 1fr; /* Adjusted width */
+                    gap: 2px; /* Drastically reduced gap */
+                    font-size: 11px; /* Reduced */
                 }
                 
                 .info-label {
@@ -1174,8 +1175,8 @@
                 .items-table {
                     width: 100%;
                     border-collapse: collapse;
-                    margin: 20px 0;
-                    font-size: 12px;
+                    margin: 10px 0; /* Reduced */
+                    font-size: 11px; /* Reduced */
                     border-radius: 6px;
                     overflow: hidden;
                     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -1184,14 +1185,14 @@
                 .items-table thead th {
                     background: ${companyDetails.colors.primary};
                     color: white;
-                    padding: 10px 12px;
+                    padding: 6px 8px; /* Compact padding */
                     text-align: left;
                     font-weight: 600;
-                    font-size: 12px;
+                    font-size: 11px;
                 }
                 
                 .items-table tbody td {
-                    padding: 10px 12px;
+                    padding: 4px 8px; /* Very compact padding for rows */
                     border-bottom: 1px solid #edf2f7;
                     color: #4a5568;
                     background: white;
@@ -1213,23 +1214,23 @@
                 .summary-section {
                     display: flex;
                     justify-content: flex-end;
-                    margin-top: 15px;
+                    margin-top: 10px; /* Reduced */
                 }
                 
                 .summary {
-                    width: 250px;
+                    width: 220px; /* Slightly narrower */
                     background: white;
-                    border-radius: 8px;
-                    padding: 15px;
+                    border-radius: 6px;
+                    padding: 10px; /* Reduced from 15 */
                     border: 1px solid #e2e8f0;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
                 }
                 
                 .summary-row {
                     display: flex;
                     justify-content: space-between;
-                    margin-bottom: 8px;
-                    font-size: 12px;
+                    margin-bottom: 4px; /* Reduced */
+                    font-size: 11px; /* Reduced */
                 }
                 
                 .summary-label {
@@ -1244,25 +1245,27 @@
                 .summary-divider {
                     height: 1px;
                     background: #e2e8f0;
-                    margin: 10px 0;
+                    margin: 6px 0; /* Reduced */
                 }
                 
                 .summary-total {
                     font-weight: 700;
                     color: ${companyDetails.colors.primary};
+                    font-size: 12px;
                 }
                 
                 .summary-balance {
                     font-weight: 700;
                     color: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
+                    font-size: 12px;
                 }
                 
                 /* Payment status */
                 .payment-status {
                     display: inline-block;
-                    padding: 3px 10px;
-                    border-radius: 12px;
-                    font-size: 10px;
+                    padding: 2px 8px; /* Reduced */
+                    border-radius: 10px;
+                    font-size: 9px;
                     font-weight: 600;
                     background: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
                     color: white;
@@ -1272,20 +1275,20 @@
                 
                 /* Notes section */
                 .notes-section {
-                    margin-top: 20px;
-                    padding: 15px;
+                    margin-top: 10px; /* Reduced */
+                    padding: 8px 12px; /* Reduced */
                     background: ${companyDetails.colors.lightBg};
-                    border-radius: 8px;
+                    border-radius: 6px;
                     border-left: 3px solid ${companyDetails.colors.accent};
-                    font-size: 12px;
+                    font-size: 10px; /* Reduced from 12 */
                 }
                 
                 .notes-title {
                     font-family: 'Poppins', sans-serif;
                     font-weight: 600;
-                    font-size: 14px;
+                    font-size: 11px; /* Reduced */
                     color: ${companyDetails.colors.primary};
-                    margin-bottom: 8px;
+                    margin-bottom: 4px; /* Reduced */
                     display: flex;
                     align-items: center;
                 }
@@ -1293,17 +1296,22 @@
                 .notes-title:before {
                     content: '•';
                     color: ${companyDetails.colors.accent};
-                    margin-right: 8px;
-                    font-size: 16px;
+                    margin-right: 6px;
+                    font-size: 14px;
+                }
+
+                .notes-content ul li {
+                    margin-bottom: 2px; /* Tighter list */
+                    line-height: 1.3;
                 }
                 
                 /* Footer */
                 .invoice-footer {
-                    margin-top: 18px;
-                    padding-top: 10px;
+                    margin-top: 12px;
+                    padding-top: 8px;
                     border-top: 1px dashed #cbd5e0;
                     text-align: center;
-                    font-size: 10px;
+                    font-size: 9px; /* Reduced */
                     color: #a0aec0;
                 }
                 
@@ -1311,9 +1319,9 @@
                     font-family: 'Poppins', sans-serif;
                     font-weight: 500;
                     color: ${companyDetails.colors.primary};
-                    margin-top: 20px;
+                    margin-top: 10px; /* Reduced */
                     text-align: center;
-                    font-size: 13px;
+                    font-size: 11px;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -1325,7 +1333,7 @@
                 }
                 
                 .mb-5 {
-                    margin-bottom: 5px;
+                    margin-bottom: 2px;
                 }
             </style>
             
@@ -1359,7 +1367,7 @@
                                     <div class="info-value">${customerAddress}</div>
                                 ` : ''}
                                 
-                                <div class="info-label">City/Pincode</div>
+                                <div class="info-label">City/Pin</div>
                                 <div class="info-value">${customerCity}${customerPincode ? ` - ${customerPincode}` : ''}</div>
                                 
                                 ${customerPhone ? `
@@ -1377,10 +1385,10 @@
                         <div class="column">
                             <div class="section-title">Invoice Details</div>
                             <div class="info-grid">
-                                <div class="info-label">Invoice Date</div>
+                                <div class="info-label">Date</div>
                                 <div class="info-value">${invoiceDate.toLocaleDateString('en-IN')}</div>
                                 
-                                <div class="info-label">Payment Method</div>
+                                <div class="info-label">Pay Mode</div>
                                 <div class="info-value"><strong>${paymentMethod}</strong></div>
                                 
                                 <div class="info-label">GSTIN</div>
@@ -1469,13 +1477,13 @@
                     <div class="notes-section mt-10">
                         <div class="notes-title">Terms & Conditions</div>
                         <div class="notes-content">
-                            <ul style="margin: 5px 0; padding-left: 15px; list-style-type: none;">
-                                <li>• All electronic components and modules supplied by Elegets Electronics are tested for basic working condition before handover.</li>
-                                <li>• Customers must check the components physically and functionally at the time of delivery or collection.</li>
-                                <li>• After handover and acceptance, no return, replacement, or refund will be provided under any circumstances.</li>
-                                <li>• Elegets Electronics is not responsible for damage caused by improper handling, wrong connections, over-voltage, reverse polarity, static discharge, or misuse after delivery.</li>
-                                <li>• Software support, code debugging, or project integration is not included unless clearly mentioned in the invoice.</li>
-                                <li>• By signing below, the customer confirms that the components were received in good condition, testing was completed, and all the above terms and conditions are accepted.</li>
+                            <ul style="margin: 2px 0; padding-left: 15px; list-style-type: none;">
+                                <li>• All electronic components/modules are basic tested before handover.</li>
+                                <li>• Customers must check physically & functionally at time of delivery.</li>
+                                <li>• No return, replacement, or refund after handover.</li>
+                                <li>• Not responsible for damage due to misuse, wrong connection, or static.</li>
+                                <li>• Software/Code support is NOT included unless specified.</li>
+                                <li>• Signing confirms receipt in good condition & acceptance of terms.</li>
                             </ul>
                         </div>
                     </div>
@@ -1485,7 +1493,7 @@
                     </div>
                     
                     <div class="invoice-footer">
-                        <div><strong>${companyDetails.name}</strong> | ${companyDetails.website} | ${companyDetails.contactNumber} | ${companyDetails.email}</div>
+                        <div><strong>${companyDetails.name}</strong> | ${companyDetails.website} | ${companyDetails.contactNumber}</div>
                         <div class="mt-5">GSTIN: ${companyDetails.GSTIN} | ${companyDetails.established}</div>
                     </div>
                 </div>
