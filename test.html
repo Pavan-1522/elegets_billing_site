@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>View Bill - Elegets Electronics</title>
+  <title>View Bill & Actions - Elegets Electronics</title>
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,6 +26,8 @@
       --text-muted: #94a3b8;
       --border-color: #475569;
       --success: #4cc9f0;
+      --whatsapp: #25D366;
+      --gmail: #EA4335;
     }
     
     body {
@@ -134,6 +136,36 @@
       border-top: 1px solid var(--border-color);
     }
 
+    /* ACTION BAR & COMMUNICATION */
+    .action-bar {
+      background: #1e293b;
+      border-top: 1px solid var(--border-color);
+      padding: 1.5rem;
+      margin-top: 2rem;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .comm-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed var(--border-color);
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .btn-whatsapp { background-color: var(--whatsapp); color: white; border: none; }
+    .btn-whatsapp:hover { background-color: #1ebe57; color: white; }
+    
+    .btn-gmail { background-color: var(--gmail); color: white; border: none; }
+    .btn-gmail:hover { background-color: #d33828; color: white; }
+
+    .qr-container {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+
     /* Loading Spinner */
     .btn-loading { pointer-events: none; position: relative; color: transparent !important; }
     .btn-loading::after {
@@ -184,7 +216,7 @@
             <h4 class="mb-0"><i class="fas fa-search me-2"></i> Find Invoice</h4>
           </div>
           
-          <div class="card-body">
+          <div class="card-body pb-0">
             <div class="row g-2 mb-4">
               <div class="col-md-8">
                 <div class="input-group input-group-lg">
@@ -290,15 +322,76 @@
                   </div>
                 </div>
               </div>
-              
-              <div class="d-flex justify-content-end mt-4 pt-3 border-top border-secondary">
-                <button class="btn btn-primary px-4" id="downloadBillBtn">
+            </div>
+            </div>
+
+          <div id="actionBar" class="action-bar" style="display: none;">
+            
+            <div class="row align-items-center">
+              <div class="col-md-6 mb-3 mb-md-0">
+                 <button class="btn btn-primary w-100" id="downloadBillBtn">
                   <i class="fas fa-file-pdf me-2"></i> Download PDF
                 </button>
               </div>
-
+              <div class="col-md-6">
+                <button class="btn btn-outline-light w-100" type="button" data-bs-toggle="collapse" data-bs-target="#communicationPanel">
+                  <i class="fas fa-paper-plane me-2"></i> Send Reminder / Receipt
+                </button>
+              </div>
             </div>
-          </div>
+
+            <div class="collapse mt-3" id="communicationPanel">
+              <div class="card card-body bg-dark border-secondary">
+                
+                <div id="statusHeader" class="mb-3 text-center">
+                  </div>
+
+                <div class="row">
+                  <div class="col-md-4 text-center border-end border-secondary" id="qrColumn" style="display:none;">
+                    <p class="text-white small mb-2">Scan to Pay</p>
+                    <div class="qr-container">
+                      <img id="upiQrImage" src="" alt="QR Code" style="width: 120px; height: 120px;">
+                    </div>
+                    <div class="small text-muted mt-1">UPI: 6302085024@ybl</div>
+                  </div>
+
+                  <div class="col-md-8 mx-auto">
+                    <h6 class="text-muted mb-3">Choose Platform</h6>
+                    
+                    <div class="comm-card mb-2">
+                       <div class="d-flex align-items-center justify-content-between">
+                          <div>
+                            <i class="fab fa-whatsapp text-success fs-4 me-2"></i>
+                            <span class="text-white">WhatsApp</span>
+                          </div>
+                          <button class="btn btn-whatsapp btn-sm" onclick="sendWhatsApp()">
+                            Send Message <i class="fas fa-external-link-alt ms-1"></i>
+                          </button>
+                       </div>
+                    </div>
+
+                    <div class="comm-card">
+                       <div class="d-flex align-items-center justify-content-between">
+                          <div>
+                            <i class="far fa-envelope text-danger fs-4 me-2"></i>
+                            <span class="text-white">Email</span>
+                          </div>
+                          <button class="btn btn-gmail btn-sm" onclick="sendEmail()">
+                            Open Mail App <i class="fas fa-external-link-alt ms-1"></i>
+                          </button>
+                       </div>
+                    </div>
+                    
+                    <div class="text-muted small mt-2">
+                      <i class="fas fa-info-circle"></i> This will open the app with a pre-filled message including bill details.
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            </div>
+
         </div>
       </div>
     </div>
@@ -327,6 +420,9 @@
     const auth = firebase.auth();
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    // Global variable to hold current bill data for actions
+    let currentBillData = null;
+
     // 3. LOGIC
     document.addEventListener('DOMContentLoaded', function() {
       
@@ -352,6 +448,7 @@
       let val = input.value.trim();
       const errorDiv = document.getElementById('errorMessage');
       const displayDiv = document.getElementById('billDisplay');
+      const actionDiv = document.getElementById('actionBar'); // Action bar
       const btn = document.getElementById('fetchBillBtn');
 
       if (!val) {
@@ -360,7 +457,7 @@
         return;
       }
 
-      // SEARCH LOGIC
+      // Search Logic
       let cleanNum = val.replace(/^ELE/i, ''); 
       if(/^\d+$/.test(cleanNum)) {
           cleanNum = cleanNum.padStart(3, '0');
@@ -370,20 +467,31 @@
       // UI Reset
       errorDiv.style.display = 'none';
       displayDiv.style.display = 'none';
+      actionDiv.style.display = 'none';
+      
+      // Collapse comm panel if open
+      const collapseElement = document.getElementById('communicationPanel');
+      if(collapseElement.classList.contains('show')) {
+         new bootstrap.Collapse(collapseElement, { toggle: true });
+      }
+
       btn.classList.add('btn-loading');
 
       try {
         const { data, error } = await supabaseClient
           .from('bills')
           .select('*')
-          .ilike('bill_number', searchId) // Case-insensitive match
+          .ilike('bill_number', searchId)
           .single();
         
         if (error) throw error;
         
         if (data) {
+          currentBillData = data; // Store globally
           displayBill(data);
           displayDiv.style.display = 'block';
+          actionDiv.style.display = 'block'; // Show actions
+          setupCommunicationPanel(data); // Setup Email/WhatsApp logic
         } else {
           throw new Error("Bill not found.");
         }
@@ -438,7 +546,144 @@
       document.getElementById('balanceDisplay').textContent = (bill.balance || 0).toFixed(2);
     }
 
-    // --- UPDATED PDF GENERATION (COMPACT FORMAT) ---
+    // ---------------------------------------------------
+    // COMMUNICATION LOGIC
+    // ---------------------------------------------------
+
+    function setupCommunicationPanel(bill) {
+      const balance = bill.balance || 0;
+      const isPaid = balance <= 0;
+      const statusHeader = document.getElementById('statusHeader');
+      const qrColumn = document.getElementById('qrColumn');
+      const qrImage = document.getElementById('upiQrImage');
+      const commCol = document.querySelector('#communicationPanel .col-md-8');
+
+      if(isPaid) {
+        // PAID MODE
+        statusHeader.innerHTML = `
+          <div class="alert alert-success d-inline-block px-4">
+            <i class="fas fa-check-circle me-2"></i> Payment Completed
+          </div>
+          <p class="text-muted small mt-2">Send receipt to customer</p>
+        `;
+        qrColumn.style.display = 'none';
+        
+        // Fix grid layout if no QR column
+        commCol.classList.remove('col-md-8');
+        commCol.classList.add('col-md-10');
+      } else {
+        // PENDING MODE
+        statusHeader.innerHTML = `
+          <div class="alert alert-warning d-inline-block px-4">
+            <i class="fas fa-clock me-2"></i> Payment Pending: ₹${balance.toFixed(2)}
+          </div>
+          <p class="text-muted small mt-2">Send payment reminder with UPI Link</p>
+        `;
+        qrColumn.style.display = 'block'; // Show QR Column
+        
+        // Restore grid
+        commCol.classList.remove('col-md-10');
+        commCol.classList.add('col-md-8');
+
+        // Generate UPI QR
+        // UPI Format: upi://pay?pa=ADDRESS&pn=NAME&am=AMOUNT&tn=NOTE
+        const upiId = "6302085024@ybl"; // Using phone number from company info
+        const name = "Elegets Electronics";
+        const note = `Bill ${bill.bill_number}`;
+        const amount = balance.toFixed(2);
+        
+        const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&tn=${encodeURIComponent(note)}`;
+        // Use QR Server API
+        qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upiString)}`;
+      }
+    }
+
+    function getItemsString(items) {
+      return items.map(i => `• ${i.name} (x${i.qty}) - ₹${i.total}`).join('%0A'); // %0A is newline
+    }
+    
+    function getItemsStringEmail(items) {
+      return items.map(i => `- ${i.name} (x${i.qty}): ₹${i.total}`).join('\n');
+    }
+
+    function sendWhatsApp() {
+      if(!currentBillData) return;
+      const bill = currentBillData;
+      const custPhone = bill.customer?.phone || '';
+      const balance = bill.balance || 0;
+      const isPaid = balance <= 0;
+
+      let msg = "";
+
+      if(isPaid) {
+        msg = `*Hello ${bill.customer?.name || 'Customer'},*%0A%0A` +
+              `Thank you for purchasing from *Elegets Electronics*! 🛍️%0A` +
+              `We hope you have a nice day!%0A%0A` +
+              `*Bill Details (${bill.bill_number}):*%0A` +
+              `${getItemsString(bill.items)}%0A` +
+              `--------------------%0A` +
+              `*Grand Total: ₹${bill.grand_total}*%0A` +
+              `*Status: PAID ✅*%0A%0A` +
+              `For any queries, contact: 6302085024`;
+      } else {
+        msg = `*Hello ${bill.customer?.name || 'Customer'},*%0A%0A` +
+              `Your payment is pending for Bill *${bill.bill_number}* at Elegets Electronics.%0A%0A` +
+              `*Items:*%0A` +
+              `${getItemsString(bill.items)}%0A` +
+              `--------------------%0A` +
+              `*Total Amount: ₹${bill.grand_total}*%0A` +
+              `*Amount Paid: ₹${bill.amount_paid}*%0A` +
+              `*Balance Due: ₹${balance} ❗*%0A%0A` +
+              `Please pay using the UPI ID below:%0A` +
+              `UPI ID: *6302085024@ybl*%0A%0A` +
+              `Thank you!`;
+      }
+
+      // Open WhatsApp
+      const url = `https://wa.me/${custPhone}?text=${msg}`;
+      window.open(url, '_blank');
+    }
+
+    function sendEmail() {
+      if(!currentBillData) return;
+      const bill = currentBillData;
+      const custEmail = bill.customer?.email || '';
+      const balance = bill.balance || 0;
+      const isPaid = balance <= 0;
+
+      const subject = `Invoice ${bill.bill_number} from Elegets Electronics`;
+      let body = "";
+
+      if(isPaid) {
+        body = `Dear ${bill.customer?.name || 'Customer'},\n\n` +
+               `Thank you for your purchase from Elegets Electronics! Payment has been received.\n\n` +
+               `Bill Number: ${bill.bill_number}\n` +
+               `Date: ${new Date(bill.bill_date).toLocaleDateString()}\n\n` +
+               `ORDER SUMMARY:\n` +
+               `${getItemsStringEmail(bill.items)}\n` +
+               `-----------------------------------\n` +
+               `TOTAL PAID: ₹${bill.grand_total}\n\n` +
+               `We hope to see you again soon!\n\n` +
+               `Best Regards,\nElegets Electronics\n6302085024`;
+      } else {
+        body = `Dear ${bill.customer?.name || 'Customer'},\n\n` +
+               `This is a reminder regarding your pending payment at Elegets Electronics.\n\n` +
+               `Bill Number: ${bill.bill_number}\n\n` +
+               `ORDER SUMMARY:\n` +
+               `${getItemsStringEmail(bill.items)}\n` +
+               `-----------------------------------\n` +
+               `Grand Total: ₹${bill.grand_total}\n` +
+               `Amount Paid: ₹${bill.amount_paid}\n` +
+               `BALANCE DUE: ₹${balance}\n\n` +
+               `Please complete the payment via UPI to: 6302085024@ybl\n\n` +
+               `Best Regards,\nElegets Electronics\n6302085024`;
+      }
+
+      const mailtoLink = `mailto:${custEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoLink;
+    }
+
+    // --- PDF GENERATION (Kept from previous code) ---
     async function generatePDF() {
         const companyDetails = {
             name: "ELEGETS ELECTRONICS",
@@ -448,24 +693,15 @@
             contactNumber: "+91 63020 85024",
             email: "contact.elegets@gmail.com",
             GSTIN: "#",
-            established: "Est. 2023",
-            colors: {
-                primary: "#4361ee",
-                secondary: "#3a56d4",
-                accent: "#7209b7",
-                success: "#38a169",
-                danger: "#e53e3e",
-                lightBg: "#f8fafc"
-            }
+            tagline: "Premium Electronics & Gadgets",
+            colors: { primary: "#4361ee", secondary: "#3a56d4", accent: "#7209b7", success: "#38a169", danger: "#e53e3e", lightBg: "#f8fafc" }
         };
 
-        // Gather Data from DOM
         const invoiceNumber = document.getElementById('billNoDisplay').textContent;
-        const invoiceDate = new Date(document.getElementById('billDateDisplay').textContent); // Ensure text is parseable
+        const invoiceDate = new Date(document.getElementById('billDateDisplay').textContent);
         const paymentMethod = document.getElementById('paymentMethodDisplay').textContent;
         const customerName = document.getElementById('customerName').value;
         const customerPhone = document.getElementById('customerPhone').value;
-        const customerEmail = document.getElementById('customerEmail').value;
         const customerAddress = document.getElementById('customerAddress').value;
         const customerCity = document.getElementById('customerCity').value;
         const customerPincode = document.getElementById('customerPincode').value;
@@ -478,11 +714,10 @@
         const grandTotal = parseFloat(document.getElementById('grandTotal').textContent);
         const balance = parseFloat(document.getElementById('balanceDisplay').textContent);
 
-        // Parse Items from DOM table
-        const bill = [];
+        const billItems = [];
         document.querySelectorAll('#billItems tr').forEach(row => {
             const cols = row.querySelectorAll('td');
-            bill.push({
+            billItems.push({
                 name: cols[1].textContent,
                 price: parseFloat(cols[2].textContent.replace('₹', '')),
                 qty: cols[3].textContent,
@@ -490,324 +725,82 @@
             });
         });
 
-        // Create PDF container with fixed A4 width
+        // Create PDF container (Invisible)
         const pdfContainer = document.createElement('div');
         pdfContainer.style.width = '210mm';
         pdfContainer.style.minHeight = '297mm';
         pdfContainer.style.padding = '0';
-        pdfContainer.style.fontFamily = "'Poppins', 'Helvetica Neue', Arial, sans-serif";
+        pdfContainer.style.fontFamily = "'Poppins', sans-serif";
         pdfContainer.style.color = '#2d3748';
         pdfContainer.style.background = '#fff';
-        pdfContainer.style.lineHeight = '1.2';
         
-        // Compact HTML Template
-        pdfContainer.innerHTML = `
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fredoka+One&display=swap');
-                
-                .colorful-invoice {
-                    width: 100%;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    background: #fff;
-                    position: relative;
-                    overflow: hidden;
-                    padding-bottom: 10px;
-                }
-                
-                .invoice-header {
-                    background: linear-gradient(135deg, ${companyDetails.colors.primary} 0%, ${companyDetails.colors.secondary} 100%);
-                    padding: 8px 12px;
-                    color: white;
-                    position: relative;
-                    overflow: hidden;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    border-bottom: 3px solid ${companyDetails.colors.accent};
-                }
-                
-                .company-info { flex: 1; }
-                
-                .company-name {
-                    font-family: 'Fredoka One', cursive;
-                    font-weight: 400;
-                    font-size: 20px;
-                    letter-spacing: 0.5px;
-                    margin-bottom: 0px;
-                }
-                
-                .company-details { font-size: 9px; opacity: 0.9; line-height: 1.2; }
-                
-                .invoice-title { text-align: right; }
-                
-                .invoice-title-text {
-                    font-family: 'Poppins', sans-serif;
-                    font-weight: 700;
-                    font-size: 22px;
-                    color: white;
-                    margin: 0;
-                    line-height: 1;
-                }
-                
-                .invoice-number { font-size: 12px; font-weight: 500; margin-top: 2px; opacity: 0.9; }
-                
-                .invoice-content { padding: 10px 12px; }
+        // CSS for PDF
+        const styles = `
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Fredoka+One&display=swap');
+            .colorful-invoice { padding-bottom: 20px; }
+            .invoice-header { background: linear-gradient(135deg, ${companyDetails.colors.primary}, ${companyDetails.colors.secondary}); padding: 25px 30px; color: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid ${companyDetails.colors.accent}; }
+            .company-name { font-family: 'Fredoka One', cursive; font-size: 24px; }
+            .company-details { font-size: 10px; opacity: 0.9; }
+            .invoice-title-text { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 28px; text-align: right; }
+            .invoice-content { padding: 25px 30px; }
+            .columns { display: flex; gap: 15px; margin-bottom: 20px; }
+            .column { flex: 1; background: ${companyDetails.colors.lightBg}; padding: 15px; border-left: 4px solid ${companyDetails.colors.primary}; border-radius: 8px; }
+            .section-title { color: ${companyDetails.colors.primary}; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+            .info-grid { font-size: 12px; display: grid; grid-template-columns: 80px 1fr; gap: 5px; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
+            .items-table th { background: ${companyDetails.colors.primary}; color: white; padding: 8px; text-align: left; }
+            .items-table td { padding: 8px; border-bottom: 1px solid #eee; }
+            .summary { width: 250px; margin-left: auto; font-size: 12px; }
+            .summary-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+            .total-row { font-weight: 700; color: ${companyDetails.colors.primary}; font-size: 14px; border-top: 1px solid #ddd; padding-top: 5px; }
+        `;
 
-                .columns { display: flex; margin-bottom: 10px; gap: 10px; }
-                
-                .column {
-                    flex: 1;
-                    background: ${companyDetails.colors.lightBg};
-                    border-radius: 6px;
-                    padding: 8px 10px;
-                    border-left: 3px solid ${companyDetails.colors.primary};
-                    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-                }
-                
-                .section-title {
-                    font-family: 'Poppins', sans-serif;
-                    font-weight: 600;
-                    font-size: 12px;
-                    color: ${companyDetails.colors.primary};
-                    margin-bottom: 6px;
-                    display: flex;
-                    align-items: center;
-                    padding-bottom: 3px;
-                    border-bottom: 1px dashed #e2e8f0;
-                }
-                
-                .section-title:before {
-                    content: ''; display: inline-block; width: 5px; height: 5px; border-radius: 50%;
-                    background: ${companyDetails.colors.accent}; margin-right: 6px;
-                }
-                
-                .info-grid { display: grid; grid-template-columns: 70px 1fr; gap: 2px; font-size: 11px; }
-                
-                .info-label { color: #718096; font-weight: 500; }
-                .info-value { color: #2d3748; word-break: break-word; }
-                
-                .items-table {
-                    width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 11px;
-                    border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-                }
-                
-                .items-table thead th {
-                    background: ${companyDetails.colors.primary}; color: white; padding: 6px 8px;
-                    text-align: left; font-weight: 600; font-size: 11px;
-                }
-                
-                .items-table tbody td {
-                    padding: 4px 8px; border-bottom: 1px solid #edf2f7; color: #4a5568; background: white;
-                }
-                
-                .items-table tbody tr:nth-child(even) td { background: ${companyDetails.colors.lightBg}; }
-                
-                .text-right { text-align: right; }
-                .text-center { text-align: center; }
-                
-                .summary-section { display: flex; justify-content: flex-end; margin-top: 10px; }
-                
-                .summary {
-                    width: 220px; background: white; border-radius: 6px; padding: 10px;
-                    border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-                }
-                
-                .summary-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 11px; }
-                .summary-label { color: #718096; }
-                .summary-value { color: #2d3748; font-weight: 500; }
-                .summary-divider { height: 1px; background: #e2e8f0; margin: 6px 0; }
-                .summary-total { font-weight: 700; color: ${companyDetails.colors.primary}; font-size: 12px; }
-                .summary-balance { font-weight: 700; color: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger}; font-size: 12px; }
-                
-                .payment-status {
-                    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px;
-                    font-weight: 600; background: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
-                    color: white; text-transform: uppercase; letter-spacing: 0.5px;
-                }
-                
-                .notes-section {
-                    margin-top: 10px; padding: 8px 12px; background: ${companyDetails.colors.lightBg};
-                    border-radius: 6px; border-left: 3px solid ${companyDetails.colors.accent}; font-size: 10px;
-                }
-                
-                .notes-title {
-                    font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 11px;
-                    color: ${companyDetails.colors.primary}; margin-bottom: 4px; display: flex; align-items: center;
-                }
-                
-                .notes-title:before { content: '•'; color: ${companyDetails.colors.accent}; margin-right: 6px; font-size: 14px; }
-                .notes-content ul li { margin-bottom: 2px; line-height: 1.3; }
-                
-                .invoice-footer {
-                    margin-top: 12px; padding-top: 8px; border-top: 1px dashed #cbd5e0;
-                    text-align: center; font-size: 9px; color: #a0aec0;
-                }
-                
-                .thank-you {
-                    font-family: 'Poppins', sans-serif; font-weight: 500; color: ${companyDetails.colors.primary};
-                    margin-top: 10px; text-align: center; font-size: 11px;
-                    display: flex; flex-direction: column; align-items: center;
-                }
-                
-                .mt-10 { margin-top: 5px; }
-                .mt-5 { margin-top: 2px; }
-            </style>
-            
+        pdfContainer.innerHTML = `
+            <style>${styles}</style>
             <div class="colorful-invoice">
                 <div class="invoice-header">
-                    <div class="company-info">
+                    <div>
                         <div class="company-name">${companyDetails.name}</div>
-                        <div class="company-details">
-                            ${companyDetails.address}<br>
-                            ${companyDetails.city}<br>
-                            ${companyDetails.contactNumber} | ${companyDetails.email}
-                        </div>
+                        <div class="company-details">${companyDetails.address}<br>${companyDetails.contactNumber}</div>
                     </div>
-                    <div class="invoice-title">
+                    <div>
                         <div class="invoice-title-text">INVOICE</div>
-                        <div class="invoice-number">#${invoiceNumber}</div>
-                        <div class="payment-status mt-10">${balance <= 0 ? 'PAID' : 'PENDING'}</div>
+                        <div style="text-align: right; font-size: 14px;">#${invoiceNumber}</div>
                     </div>
                 </div>
-                
                 <div class="invoice-content">
                     <div class="columns">
                         <div class="column">
                             <div class="section-title">Bill To</div>
                             <div class="info-grid">
-                                <div class="info-label">Name</div>
-                                <div class="info-value"><strong>${customerName}</strong></div>
-                                
-                                ${customerAddress ? `
-                                    <div class="info-label">Address</div>
-                                    <div class="info-value">${customerAddress}</div>
-                                ` : ''}
-                                
-                                <div class="info-label">City/Pin</div>
-                                <div class="info-value">${customerCity}${customerPincode ? ` - ${customerPincode}` : ''}</div>
-                                
-                                ${customerPhone ? `
-                                    <div class="info-label">Contact</div>
-                                    <div class="info-value">${customerPhone}</div>
-                                ` : ''}
+                                <div>Name:</div><div><strong>${customerName}</strong></div>
+                                <div>Phone:</div><div>${customerPhone}</div>
+                                <div>City:</div><div>${customerCity}</div>
                             </div>
                         </div>
-                        
                         <div class="column">
-                            <div class="section-title">Invoice Details</div>
+                            <div class="section-title">Details</div>
                             <div class="info-grid">
-                                <div class="info-label">Date</div>
-                                <div class="info-value">${invoiceDate.toLocaleDateString('en-IN')}</div>
-                                
-                                <div class="info-label">Pay Mode</div>
-                                <div class="info-value"><strong>${paymentMethod}</strong></div>
-                                
-                                <div class="info-label">GSTIN</div>
-                                <div class="info-value">${companyDetails.GSTIN}</div>
-                                
-                                <div class="info-label">Status</div>
-                                <div class="info-value">
-                                    <span class="payment-status">${balance <= 0 ? 'Paid' : 'Due'}</span>
-                                </div>
+                                <div>Date:</div><div>${invoiceDate.toLocaleDateString()}</div>
+                                <div>Method:</div><div>${paymentMethod}</div>
                             </div>
                         </div>
                     </div>
-                    
                     <table class="items-table">
-                        <thead>
-                            <tr>
-                                <th>Item Description</th>
-                                <th class="text-right">Price</th>
-                                <th class="text-center">Qty</th>
-                                <th class="text-right">Amount</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Item</th><th style="text-align:right">Price</th><th style="text-align:center">Qty</th><th style="text-align:right">Total</th></tr></thead>
                         <tbody>
-                            ${bill.map((item) => `
-                                <tr>
-                                    <td>${item.name}</td>
-                                    <td class="text-right">₹${item.price.toFixed(2)}</td>
-                                    <td class="text-center">${item.qty}</td>
-                                    <td class="text-right">₹${item.total.toFixed(2)}</td>
-                                </tr>
-                            `).join('')}
+                            ${billItems.map(item => `<tr><td>${item.name}</td><td style="text-align:right">₹${item.price.toFixed(2)}</td><td style="text-align:center">${item.qty}</td><td style="text-align:right">₹${item.total.toFixed(2)}</td></tr>`).join('')}
                         </tbody>
                     </table>
-                    
-                    <div class="summary-section">
-                        <div class="summary">
-                            <div class="summary-row">
-                                <span class="summary-label">Subtotal:</span>
-                                <span class="summary-value">₹${subtotal.toFixed(2)}</span>
-                            </div>
-                            
-                            ${discount > 0 ? `
-                                <div class="summary-row">
-                                    <span class="summary-label">Discount:</span>
-                                    <span class="summary-value" style="color: ${companyDetails.colors.danger}">- ₹${discount.toFixed(2)}</span>
-                                </div>
-                            ` : ''}
-                            
-                            ${delivery > 0 ? `
-                                <div class="summary-row">
-                                    <span class="summary-label">Delivery:</span>
-                                    <span class="summary-value" style="color: ${companyDetails.colors.success}">+ ₹${delivery.toFixed(2)}</span>
-                                </div>
-                            ` : ''}
-                            
-                            <div class="summary-divider"></div>
-                            
-                            <div class="summary-row">
-                                <span class="summary-total">Grand Total:</span>
-                                <span class="summary-total">₹${grandTotal.toFixed(2)}</span>
-                            </div>
-                            
-                            <div class="summary-row">
-                                <span class="summary-label">Amount Paid:</span>
-                                <span class="summary-value">₹${paid.toFixed(2)}</span>
-                            </div>
-                            
-                            <div class="summary-divider"></div>
-                            
-                            <div class="summary-row">
-                                <span class="summary-total">Balance:</span>
-                                <span class="summary-balance">₹${Math.abs(balance).toFixed(2)} ${balance <= 0 ? 'Paid' : 'Due'}</span>
-                            </div>
-                        </div>
+                    <div class="summary">
+                        <div class="summary-row"><span>Subtotal:</span><span>₹${subtotal.toFixed(2)}</span></div>
+                        ${discount > 0 ? `<div class="summary-row" style="color:${companyDetails.colors.danger}"><span>Discount:</span><span>- ₹${discount.toFixed(2)}</span></div>` : ''}
+                        ${delivery > 0 ? `<div class="summary-row" style="color:${companyDetails.colors.success}"><span>Delivery:</span><span>+ ₹${delivery.toFixed(2)}</span></div>` : ''}
+                        <div class="summary-row total-row"><span>Grand Total:</span><span>₹${grandTotal.toFixed(2)}</span></div>
+                        <div class="summary-row"><span>Amount Paid:</span><span>₹${paid.toFixed(2)}</span></div>
+                        <div class="summary-row total-row" style="color:${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger}"><span>Balance:</span><span>₹${Math.abs(balance).toFixed(2)}</span></div>
                     </div>
-                    
-                    ${notes ? `
-                        <div class="notes-section">
-                            <div class="notes-title">Customer Notes</div>
-                            <div class="notes-content">
-                                ${notes}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="notes-section mt-10">
-                        <div class="notes-title">Terms & Conditions</div>
-                        <div class="notes-content">
-                            <ul style="margin: 2px 0; padding-left: 15px; list-style-type: none;">
-                                <li>• All electronic components/modules are basic tested before handover.</li>
-                                <li>• Customers must check physically & functionally at time of delivery.</li>
-                                <li>• No return, replacement, or refund after handover.</li>
-                                <li>• Not responsible for damage due to misuse, wrong connection, or static.</li>
-                                <li>• Software/Code support is NOT included unless specified.</li>
-                                <li>• Signing confirms receipt in good condition & acceptance of terms.</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="thank-you">
-                        Thank you for your business!
-                    </div>
-                    
-                    <div class="invoice-footer">
-                        <div><strong>${companyDetails.name}</strong> | ${companyDetails.website} | ${companyDetails.contactNumber}</div>
-                        <div class="mt-5">GSTIN: ${companyDetails.GSTIN} | ${companyDetails.established}</div>
-                    </div>
+                    ${notes ? `<div style="margin-top:20px; padding:10px; background:#f8fafc; border-left:3px solid #7209b7; font-size:11px;"><strong>Note:</strong> ${notes}</div>` : ''}
                 </div>
             </div>
         `;
@@ -822,8 +815,6 @@
             const { jsPDF } = window.jspdf;
             const canvas = await html2canvas(pdfContainer, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png', 1.0);
-            
-            // A4 Dimensions: 210mm x 297mm
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
