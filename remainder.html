@@ -413,8 +413,8 @@
       const balance = bill.balance || 0;
       const isPaid = balance <= 0;
       let msg = isPaid 
-        ? `*Hello ${bill.customer?.name}* 👋✨%0A%0AThank you for shopping with *Elegets* 🛍️💙%0AWe truly appreciate your support! 🙌%0A%0A🧾 *Order No:* ${bill.bill_number}%0A💰 *Total Amount:* ₹${bill.grand_total}%0A✅ *Payment Status:* PAID%0A%0A📄 *View your bill:* Click here 👇%0Ahttps://billing.elegets.in/viewBill.html?bill=ELE${bill.bill_number}%0A%0AHave a great day! 🌟😊`
-        : `*Hello ${bill.customer?.name}* 👋,%0A%0A⚠️ *Payment Pending Notice* ⚠️%0A%0A🧾 *Bill No:* ${bill.bill_number}%0A💰 *Total Amount:* ₹${bill.grand_total}%0A❗ *Balance Due:* *₹${balance}*%0A%0A📄 *View your bill:* Click here 👇%0Ahttps://billing.elegets.in/viewBill.html?bill=ELE${bill.bill_number}%0A%0A📲 *Please complete the payment to:* pavan.madeti@ybl%0A%0AOnce paid, your bill status will be updated automatically ✅%0AThank you for choosing *Elegets* 🙏✨%0A%0AHave a great day! 🌟😊`;
+        ? `*Hello ${bill.customer?.name}* 👋✨%0A%0AThank you for shopping with *Elegets* 🛍️💙%0AWe truly appreciate your support! 🙌%0A%0A🧾 *Order No:* ${bill.bill_number}%0A💰 *Total Amount:* ₹${bill.grand_total}%0A✅ *Payment Status:* PAID%0A%0A📄 *View your bill:* Click here 👇%0Ahttps://billing.elegets.in/viewBill.html?bill=${bill.bill_number}%0A%0AHave a great day! 🌟😊`
+        : `*Hello ${bill.customer?.name}* 👋,%0A%0A⚠️ *Payment Pending Notice* ⚠️%0A%0A🧾 *Bill No:* ${bill.bill_number}%0A💰 *Total Amount:* ₹${bill.grand_total}%0A❗ *Balance Due:* *₹${balance}*%0A%0A📄 *View your bill:* Click here 👇%0Ahttps://billing.elegets.in/viewBill.html?bill=${bill.bill_number}%0A%0A📲 *Please complete the payment to:* pavan.madeti@ybl%0A%0AOnce paid, your bill status will be updated automatically ✅%0AThank you for choosing *Elegets* 🙏✨%0A%0AHave a great day! 🌟😊`;
       window.open(`https://wa.me/${bill.customer?.phone}?text=${msg}`, '_blank');
     }
 
