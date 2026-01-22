@@ -413,7 +413,7 @@
         const dateStr = new Date(bill.bill_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 
         row.innerHTML = `
-          <td><a href="bill_edit.html?bill=${bill.bill_number}" class="fw-bold text-decoration-none" style="color: var(--primary)">#${bill.bill_number}</a></td>
+          <td><a href="viewBill.html?bill=${bill.bill_number}" class="fw-bold text-decoration-none" style="color: var(--primary)">#${bill.bill_number}</a></td>
           <td>${dateStr}</td>
           <td>${custName}</td>
           <td>${formatCurrency(bill.grand_total || 0)}</td>
