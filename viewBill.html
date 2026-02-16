@@ -112,6 +112,25 @@
 
     .totals-label { color: #a0aec0; font-weight: 500; }
     .totals-value { color: #ffffff; font-weight: bold; }
+    
+    .qr-container {
+        text-align: center;
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 15px;
+        display: none; /* Hidden by default */
+    }
+    .qr-container img {
+        max-width: 150px;
+        height: auto;
+    }
+    .qr-text {
+        color: #000;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-top: 5px;
+    }
 
     .hidden-search { display: none !important; }
   </style>
@@ -212,7 +231,7 @@
                         <span class="text-danger fw-bold">Discount</span>
                         <span class="text-danger fw-bold">-₹<span id="discountDisplay">0</span></span>
                       </div>
-                      <div class="d-flex justify-content-between mb-3">
+                      <div class="d-flex justify-content-between mb-2">
                         <span class="text-success fw-bold">Delivery</span>
                         <span class="text-success fw-bold">+₹<span id="deliveryDisplay">0</span></span>
                       </div>
@@ -220,6 +239,22 @@
                         <span>Grand Total</span>
                         <span>₹<span id="grandTotal">0</span></span>
                       </div>
+                      
+                      <div class="d-flex justify-content-between mb-1 mt-2">
+                        <span class="totals-label">Amount Paid</span>
+                        <span class="totals-value">₹<span id="paidDisplay">0</span></span>
+                      </div>
+                      <div class="d-flex justify-content-between mb-2">
+                        <span class="totals-label fw-bold" id="balanceLabel">Balance Due</span>
+                        <span class="fw-bold" id="balanceColor">₹<span id="balanceDisplay">0</span></span>
+                      </div>
+
+                      <div id="webQrContainer" class="qr-container">
+                          <img id="webQrImage" src="" alt="Payment QR">
+                          <div class="qr-text">Scan to Pay Balance</div>
+                          <div class="qr-text" style="font-size: 0.7rem; color: #555;">UPI: 6302085024@kotak811</div>
+                      </div>
+
                    </div>
                 </div>
               </div>
@@ -307,10 +342,45 @@
         </tr>
       `).join('');
 
+      const grandTotal = parseFloat(bill.grand_total || 0);
+      // CHECK YOUR DATABASE COLUMN NAME: assuming 'paid_amount' or 'amount_paid'
+      const paidAmount = parseFloat(bill.paid_amount || bill.amount_paid || 0);
+      const balance = grandTotal - paidAmount;
+
       document.getElementById('subtotal').textContent = bill.subtotal;
       document.getElementById('discountDisplay').textContent = bill.discount;
       document.getElementById('deliveryDisplay').textContent = bill.delivery_charges;
-      document.getElementById('grandTotal').textContent = bill.grand_total;
+      document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+      
+      // Update Payment Details on Website
+      document.getElementById('paidDisplay').textContent = paidAmount.toFixed(2);
+      document.getElementById('balanceDisplay').textContent = balance.toFixed(2);
+
+      const balanceLabel = document.getElementById('balanceLabel');
+      const balanceColor = document.getElementById('balanceColor');
+      const webQrContainer = document.getElementById('webQrContainer');
+
+      if (balance > 0) {
+          balanceLabel.textContent = "Balance Due";
+          balanceColor.classList.add('text-danger');
+          balanceColor.classList.remove('text-success');
+          
+          // Generate QR for Website
+          const upiId = "6302085024@kotak811";
+          const upiName = "Elegets Electronics";
+          // URI encoding the params
+          const upiLink = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${balance.toFixed(2)}&tn=Bill ${bill.bill_number}&cu=INR`;
+          const qrUrl = `https://quickchart.io/chart?cht=qr&chs=200x200&chl=${encodeURIComponent(upiLink)}`;
+          
+          document.getElementById('webQrImage').src = qrUrl;
+          webQrContainer.style.display = 'block';
+      } else {
+          balanceLabel.textContent = "Status";
+          document.getElementById('balanceDisplay').textContent = "PAID";
+          balanceColor.classList.add('text-success');
+          balanceColor.classList.remove('text-danger');
+          webQrContainer.style.display = 'none';
+      }
     }
 
     async function generatePDF() {
@@ -328,6 +398,7 @@
             contactNumber: "+91 63020 85024",
             email: "contact.elegets@gmail.com",
             GSTIN: "36CAUPP0582Q1ZN",
+            upiId: "6302085024@kotak811",
             tagline: "Premium Electronics & Gadgets",
             established: "Est. 2023",
             colors: {
@@ -341,8 +412,6 @@
             }
         };
 
-        // Gather bill data from GLOBAL STORAGE (currentBillData) 
-        // because input fields might be missing in view-only mode
         const invoiceNumber = currentBillData.bill_number;
         const invoiceDate = new Date(currentBillData.bill_date);
         const paymentMethod = currentBillData.payment_mode || 'Online/UPI'; 
@@ -360,9 +429,28 @@
         const delivery = parseFloat(currentBillData.delivery_charges || 0);
         const grandTotal = parseFloat(currentBillData.grand_total || 0);
         
-        // Assuming paid = grandTotal for view-only invoices unless specified
-        const paid = grandTotal; 
-        const balance = 0; 
+        // --- CALCULATION LOGIC FROM DB ---
+        // Ensure this matches your Supabase column name
+        const paid = parseFloat(currentBillData.paid_amount || currentBillData.amount_paid || 0); 
+        const balance = grandTotal - paid; 
+        const isPaid = balance <= 0;
+
+        // --- QR CODE GENERATION FOR PDF ---
+        let qrHtml = '';
+        if (!isPaid) {
+            const upiName = "Elegets Electronics";
+            const upiLink = `upi://pay?pa=${companyDetails.upiId}&pn=${encodeURIComponent(upiName)}&am=${balance.toFixed(2)}&tn=Bill ${invoiceNumber}&cu=INR`;
+            // Using QuickChart for the PDF image
+            const qrUrl = `https://quickchart.io/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(upiLink)}`;
+            
+            qrHtml = `
+                <div style="margin-right: 15px; text-align: center;">
+                    <img src="${qrUrl}" style="width: 80px; height: 80px; border: 1px solid #ddd; padding: 2px;">
+                    <div style="font-size: 8px; color: #555; margin-top: 2px;">Scan to Pay</div>
+                    <div style="font-size: 8px; font-weight:bold;">₹${balance.toFixed(2)}</div>
+                </div>
+            `;
+        }
 
         const bill = currentBillData.items || [];
 
@@ -559,7 +647,7 @@
                 
                 .summary-balance {
                     font-weight: 700;
-                    color: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
+                    color: ${isPaid ? companyDetails.colors.success : companyDetails.colors.danger};
                     font-size: 12px;
                 }
                 
@@ -569,7 +657,7 @@
                     border-radius: 10px;
                     font-size: 9px;
                     font-weight: 600;
-                    background: ${balance <= 0 ? companyDetails.colors.success : companyDetails.colors.danger};
+                    background: ${isPaid ? companyDetails.colors.success : companyDetails.colors.danger};
                     color: white;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
@@ -644,7 +732,7 @@
                     <div class="invoice-title">
                         <div class="invoice-title-text">INVOICE</div>
                         <div class="invoice-number">#${invoiceNumber}</div>
-                        <div class="payment-status mt-10">${balance <= 0 ? 'PAID' : 'PENDING'}</div>
+                        <div class="payment-status mt-10">${isPaid ? 'PAID' : 'DUE'}</div>
                     </div>
                 </div>
                 
@@ -690,7 +778,7 @@
                                 
                                 <div class="info-label">Status</div>
                                 <div class="info-value">
-                                    <span class="payment-status">${balance <= 0 ? 'Paid' : 'Due'}</span>
+                                    <span class="payment-status">${isPaid ? 'Paid' : 'Due'}</span>
                                 </div>
                             </div>
                         </div>
@@ -718,6 +806,8 @@
                     </table>
                     
                     <div class="summary-section">
+                        ${qrHtml}
+
                         <div class="summary">
                             <div class="summary-row">
                                 <span class="summary-label">Subtotal:</span>
@@ -754,7 +844,7 @@
                             
                             <div class="summary-row">
                                 <span class="summary-total">Balance:</span>
-                                <span class="summary-balance">₹${Math.abs(balance).toFixed(2)} ${balance <= 0 ? 'Paid' : 'Due'}</span>
+                                <span class="summary-balance">₹${Math.abs(balance).toFixed(2)} ${isPaid ? 'Paid' : 'Due'}</span>
                             </div>
                         </div>
                     </div>
