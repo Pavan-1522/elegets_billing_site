@@ -1,116 +1,300 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Elegets Electronics</title>
   
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  <link rel="preconnect" href="https://www.gstatic.com">
-  <link rel="preconnect" href="https://oborglvlgafnglzqczot.supabase.co">
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     :root {
       --primary: #4361ee;
+      --primary-hover: #3a56d4;
       --secondary: #3f37c9;
-      --dark: #0c0e1c;
-      --dark-light: #1a1d2e;
-      --light: #f8f9fa;
+      --bg-color: #f4f7fe;
+      --surface-color: #ffffff;
+      --text-main: #2b3674;
+      --text-muted: #a3aed1;
+      --border-color: #e9eaec;
+      
+      --success: #05cd99;
+      --warning: #ffce20;
+      --danger: #ee5d50;
+      --info: #00b5e2;
+      
+      --card-shadow: 0px 18px 40px rgba(112, 144, 176, 0.12);
+      --glass-bg: rgba(255, 255, 255, 0.7);
     }
     
-    body {
-      background-color: var(--dark);
-      color: var(--light);
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      min-height: 100vh;
-    }
-    
-    .navbar {
-      background-color: var(--dark-light);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .dashboard-header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 2rem;
-      border-radius: 10px;
-      margin-bottom: 2rem;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(67, 97, 238, 0.3);
-    }
-    
-    .stat-card {
-      background-color: var(--dark-light);
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      border-left: 4px solid var(--primary);
-      height: 100%;
-    }
-    
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-    
-    .stat-icon {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: var(--primary);
-    }
-    
-    .stat-value {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    
-    .action-card {
-      background-color: var(--dark-light);
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      height: 100%;
-      border: 1px solid transparent;
-    }
-    
-    .action-card:hover {
-      background-color: var(--dark-light);
-      border-color: var(--primary);
-      transform: translateY(-3px);
-    }
-    
-    .action-card:hover .action-icon {
-      transform: scale(1.1);
+    [data-theme="dark"] {
+      --primary: #7551ff;
+      --primary-hover: #603ce6;
+      --secondary: #4318ff;
+      --bg-color: #0b1437;
+      --surface-color: #111c44;
+      --text-main: #ffffff;
+      --text-muted: #a3bed4;
+      --border-color: rgba(255,255,255,0.1);
+      
+      --card-shadow: 0px 18px 40px rgba(0, 0, 0, 0.5);
+      --glass-bg: rgba(17, 28, 68, 0.8);
     }
 
-    .action-icon {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      color: var(--primary);
-      transition: transform 0.2s;
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s, color 0.3s;
+      min-height: 100vh;
     }
+
+    /* Navbar styling */
+    .navbar {
+      background-color: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 0;
+    }
+    .navbar-brand {
+      font-weight: 700;
+      color: var(--text-main) !important;
+      font-size: 1.5rem;
+    }
+    .nav-link {
+      color: var(--text-muted) !important;
+      font-weight: 600;
+      padding: 0.5rem 1rem !important;
+      transition: color 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--primary) !important;
+    }
+    .theme-toggle {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .theme-toggle:hover {
+      transform: scale(1.05);
+    }
+
+    /* Dashboard Header */
+    .glass-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      margin-top: 1rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(67, 97, 238, 0.4);
+    }
+    .glass-header::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+      border-radius: 50%;
+    }
+    .glass-header h1 {
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    /* Cards */
+    .stat-card {
+      background: var(--surface-color);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid var(--border-color);
+      height: 100%;
+    }
+    .stat-card:hover {
+      transform: translateY(-8px);
+    }
+    .stat-icon-wrapper {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      flex-shrink: 0;
+    }
+    .stat-blue { background: rgba(67, 97, 238, 0.1); color: var(--primary); }
+    .stat-green { background: rgba(5, 205, 153, 0.1); color: var(--success); }
+    .stat-orange { background: rgba(255, 206, 32, 0.1); color: var(--warning); }
+    .stat-red { background: rgba(238, 93, 80, 0.1); color: var(--danger); }
     
-    /* Loading Skeleton Animation */
+    .stat-details {
+      width: 100%;
+      overflow: hidden;
+    }
+    .stat-details h3 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--text-main);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .stat-details p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Action Cards */
+    .action-card {
+      background: var(--surface-color);
+      border-radius: 16px;
+      padding: 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s;
+    }
+    .action-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 8px 25px rgba(67,97,238,0.15);
+      transform: translateY(-3px);
+      background: linear-gradient(180deg, var(--surface-color) 0%, rgba(67,97,238,0.05) 100%);
+    }
+    .action-card i {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+    .action-card h6 {
+      color: var(--text-main);
+      margin: 0;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    /* Panels (Charts & Tables) */
+    .panel {
+      background: var(--surface-color);
+      border-radius: 24px;
+      padding: 1.75rem;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 2rem;
+      border: 1px solid var(--border-color);
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .panel-title {
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--text-main);
+      margin: 0;
+    }
+    .chart-container {
+      position: relative;
+      height: 320px;
+      width: 100%;
+    }
+
+    /* Table Improvements */
+    .table {
+      color: var(--text-main);
+      margin-bottom: 0;
+    }
+    .table thead th {
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      padding-bottom: 1rem;
+    }
+    .table td {
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+      padding: 1rem 0.5rem;
+      font-weight: 500;
+    }
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .table tbody tr:hover td {
+      background-color: rgba(67, 97, 238, 0.02);
+    }
+    .table-link {
+      color: var(--primary);
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .table-link:hover {
+      color: var(--primary-hover);
+    }
+    .badge {
+      padding: 0.5em 1em;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+    .bg-success-soft { background: rgba(5,205,153,0.15); color: var(--success); }
+    .bg-warning-soft { background: rgba(255,206,32,0.15); color: var(--warning); }
+
+    /* User Dropdown */
+    .user-pill {
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 30px;
+      padding: 0.25rem 1rem 0.25rem 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Loading state */
     .skeleton {
-      background: linear-gradient(90deg, #1a1d2e 25%, #252a40 50%, #1a1d2e 75%);
+      background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-color) 50%, var(--border-color) 75%);
       background-size: 200% 100%;
       animation: loading 1.5s infinite;
-      border-radius: 4px;
+      border-radius: 8px;
       color: transparent !important;
     }
-    
     @keyframes loading {
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
@@ -118,34 +302,40 @@
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">
-        <i class="fas fa-microchip me-2"></i>Elegets
+  
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+        <i class="fas fa-microchip text-primary"></i>Elegets
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
+        <i class="fas fa-bars text-main"></i>
       </button>
       
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav mx-auto">
-          <li class="nav-item"><a class="nav-link active" href="dashboard.html"><i class="fas fa-home me-1"></i> Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="billing.html"><i class="fas fa-file-invoice-dollar me-1"></i> Billing</a></li>
-          <li class="nav-item"><a class="nav-link" href="bill_edit.html"><i class="fas fa-edit me-1"></i> Edit Bill</a></li>
-          <li class="nav-item"><a class="nav-link" href="add_products.html"><i class="fas fa-boxes me-1"></i> Products</a></li>
-          <li class="nav-item"><a class="nav-link" href="edit_product.html"><i class="fas fa-boxes me-1"></i> Products [Edit]</a></li>
-          <li class="nav-item"><a class="nav-link" href="remainder.html"><i class="fas fa-paper-plane me-1"></i> Remainders</a></li>
+        <ul class="navbar-nav mx-auto gap-2">
+          <li class="nav-item"><a class="nav-link active" href="dashboard.html">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="billing.html">Billing</a></li>
+          <li class="nav-item"><a class="nav-link" href="bill_edit.html">Edit Bill</a></li>
+          <li class="nav-item"><a class="nav-link" href="add_products.html">Products</a></li>
+          <li class="nav-item"><a class="nav-link" href="remainder.html">Reminders</a></li>
         </ul>
         
-        <div class="d-flex align-items-center">
+        <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+          <button id="themeToggle" class="theme-toggle">
+            <i class="fas fa-moon"></i>
+          </button>
+
           <div class="dropdown">
-            <button class="btn btn-sm btn-outline-light dropdown-toggle d-flex align-items-center gap-2" type="button" id="userDropdown" data-bs-toggle="dropdown">
-              <i class="fas fa-user-circle fa-lg"></i>
-              <span id="usernameDisplay" class="d-none d-md-inline">Loading...</span>
+            <button class="user-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" style="border: none; background: transparent;">
+              <div class="user-pill">
+                 <div class="user-avatar" id="userIcon"><i class="fas fa-user"></i></div>
+                 <span id="usernameDisplay">Loading...</span>
+              </div>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
-              <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i> Profile</a></li>
-              <li><hr class="dropdown-divider"></li>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="background-color: var(--surface-color);">
+              <li><a class="dropdown-item text-main" href="#"><i class="fas fa-user-circle me-2"></i> Profile</a></li>
+              <li><hr class="dropdown-divider border-color"></li>
               <li><a class="dropdown-item text-danger" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
             </ul>
           </div>
@@ -154,123 +344,194 @@
     </div>
   </nav>
 
-  <div class="container my-4">
-    <div class="dashboard-header">
-      <h1 class="h2"><i class="fas fa-tachometer-alt me-2"></i> Billing Desk</h1>
-      <p class="mb-0 opacity-75">Overview & Quick Actions</p>
+  <div class="container-fluid px-4 pb-5">
+    <div class="glass-header">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <p class="mb-1 fw-medium text-white-50 text-uppercase tracking-wide">Overview & Insights</p>
+          <h1 class="mb-0">Billing Desk Dashboard</h1>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+           <button class="btn btn-light rounded-pill px-4 fw-bold text-primary" onclick="window.location.href='billing.html'">
+             <i class="fas fa-plus me-2"></i> New Bill
+           </button>
+        </div>
+      </div>
     </div>
     
-    <div class="row g-4">
-      <div class="col-md-6 col-lg-3">
+    <!-- Stat Cards -->
+    <div class="row g-4 mb-4">
+      <div class="col-xl-3 col-md-6">
         <div class="stat-card">
-          <div class="stat-icon"><i class="fas fa-microchip"></i></div>
-          <div class="stat-value skeleton" id="totalComponents">--</div>
-          <div class="stat-label">Total Components</div>
+          <div class="stat-icon-wrapper stat-blue"><i class="fas fa-microchip"></i></div>
+          <div class="stat-details">
+            <p>Total Components</p>
+            <h3 class="skeleton" id="totalComponents">--</h3>
+          </div>
         </div>
       </div>
-      
-      <div class="col-md-6 col-lg-3">
+      <div class="col-xl-3 col-md-6">
         <div class="stat-card">
-          <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
-          <div class="stat-value skeleton" id="totalBills">--</div>
-          <div class="stat-label">Total Bills</div>
+          <div class="stat-icon-wrapper stat-green"><i class="fas fa-file-invoice"></i></div>
+          <div class="stat-details">
+            <p>Total Bills Issued</p>
+            <h3 class="skeleton" id="totalBills">--</h3>
+          </div>
         </div>
       </div>
-      
-      <div class="col-md-6 col-lg-3">
+      <div class="col-xl-3 col-md-6">
         <div class="stat-card">
-          <div class="stat-icon"><i class="fas fa-wallet"></i></div>
-          <div class="stat-value skeleton" id="totalPayments">--</div>
-          <div class="stat-label">Total Payments</div>
+          <div class="stat-icon-wrapper stat-info" style="background: rgba(0, 181, 226, 0.1); color: var(--info);"><i class="fas fa-wallet"></i></div>
+          <div class="stat-details">
+            <p>Total Revenue</p>
+            <h3 class="skeleton" id="totalPayments">--</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper stat-red"><i class="fas fa-exclamation-circle"></i></div>
+          <div class="stat-details">
+            <p>Pending Payments</p>
+            <h3 class="skeleton" id="PendingPayments">--</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Insights & Quick Actions -->
+    <div class="row g-4 mb-4">
+      <!-- Revenue Chart -->
+      <div class="col-xl-8">
+        <div class="panel h-100">
+          <div class="panel-header">
+            <h5 class="panel-title"><i class="fas fa-chart-line text-primary me-2"></i> Revenue Overview (Last 7 Days)</h5>
+            <select class="form-select form-select-sm w-auto bg-transparent text-muted" style="border-color: var(--border-color);">
+              <option>Last 7 Days</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <canvas id="revenueChart"></canvas>
+          </div>
         </div>
       </div>
 
-      <div class="col-md-6 col-lg-3">
-        <div class="stat-card" style="border-left-color: var(--warning);">
-          <div class="stat-icon" style="color: var(--warning);"><i class="fas fa-clock"></i></div>
-          <div class="stat-value skeleton" id="PendingPayments">--</div>
-          <div class="stat-label">Pending Payments</div>
-        </div>
-      </div>
-    </div>
-    
-    <h4 class="text-white mt-5 mb-3 border-bottom border-secondary pb-2">Quick Actions</h4>
-    <div class="row g-4 quick-actions">
-      <div class="col-sm-6 col-lg-3">
-        <div class="action-card" onclick="window.location.href='billing.html'">
-          <div class="action-icon"><i class="fas fa-plus-circle"></i></div>
-          <h5>Create Bill</h5>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="action-card" onclick="window.location.href='bill_edit.html'">
-          <div class="action-icon"><i class="fas fa-search"></i></div>
-          <h5>Find Bill</h5>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="action-card" onclick="window.location.href='add_products.html'">
-          <div class="action-icon"><i class="fas fa-box-open"></i></div>
-          <h5>Manage Products</h5>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="action-card" onclick="window.location.href='view_bill.html'">
-          <div class="action-icon"><i class="fas fa-chart-bar"></i></div>
-          <h5>View Reports</h5>
-        </div>
-      </div>
-      <div class="col-sm-6 col-lg-3">
-        <div class="action-card" onclick="window.location.href='remainder.html'">
-          <div class="action-icon"><i class="fas fa-paper-plane"></i></div>
-          <h5>Send Reminders</h5>
-        </div>
-      </div>
-    </div>
-    
-    <div class="row mt-5">
-      <div class="col-12">
-        <div class="card bg-dark-light border-0">
-          <div class="card-header bg-transparent border-bottom border-secondary d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 text-white"><i class="fas fa-history me-2"></i> Recent Transactions</h5>
-            <a href="view_bill.html" class="btn btn-sm btn-outline-primary">View All</a>
+      <!-- Quick Actions -->
+      <div class="col-xl-4">
+        <div class="panel h-100">
+          <div class="panel-header">
+            <h5 class="panel-title">Quick Actions</h5>
           </div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-dark table-hover mb-0 align-middle">
-                <thead class="table-light text-dark">
-                  <tr>
-                    <th>Bill #</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody id="recentBills">
-                  <tr>
-                    <td colspan="5" class="text-center py-4 text-muted">
-                      <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                      Loading recent activity...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="action-card" onclick="window.location.href='billing.html'">
+                <i class="fas fa-plus-circle"></i>
+                <h6>Create Bill</h6>
+              </div>
             </div>
+            <div class="col-6">
+              <div class="action-card" onclick="window.location.href='bill_edit.html'">
+                <i class="fas fa-search"></i>
+                <h6>Find Bill</h6>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="action-card" onclick="window.location.href='add_products.html'">
+                <i class="fas fa-box-open"></i>
+                <h6>Products</h6>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="action-card" onclick="window.location.href='remainder.html'">
+                <i class="fas fa-paper-plane"></i>
+                <h6>Reminders</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="row">
+      <div class="col-12">
+        <div class="panel">
+          <div class="panel-header">
+            <h5 class="panel-title"><i class="fas fa-history text-primary me-2"></i> Recent Transactions</h5>
+            <a href="view_bill.html" class="btn btn-sm btn-outline-primary rounded-pill px-4">View All</a>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-borderless align-middle w-100">
+              <thead>
+                <tr>
+                  <th>Bill No.</th>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="recentBills">
+                <tr>
+                  <td colspan="6" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2">Loading transactions...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
   <script>
     // ==========================================
-    // 1. CONFIGURATION
+    // 1. THEME MANAGEMENT
+    // ==========================================
+    const htmlEl = document.documentElement;
+    const themeBtn = document.getElementById('themeToggle');
+    let chartInstance = null;
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      setTheme(savedTheme);
+
+      themeBtn.addEventListener('click', () => {
+        const newTheme = htmlEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        setTheme(newTheme);
+      });
+    }
+
+    function setTheme(theme) {
+      htmlEl.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      themeBtn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun text-warning"></i>' : '<i class="fas fa-moon"></i>';
+      
+      // Update Chart Colors if rendered
+      if(chartInstance) {
+          const textColor = theme === 'dark' ? '#a3bed4' : '#a3aed1';
+          const gridColor = theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+          
+          chartInstance.options.scales.x.ticks.color = textColor;
+          chartInstance.options.scales.y.ticks.color = textColor;
+          chartInstance.options.scales.x.grid.color = gridColor;
+          chartInstance.options.scales.y.grid.color = gridColor;
+          chartInstance.options.plugins.legend.labels.color = textColor;
+          chartInstance.update();
+      }
+    }
+    initTheme();
+
+    // ==========================================
+    // 2. CONFIGURATION
     // ==========================================
     const firebaseConfig = {
       apiKey: "AIzaSyASjV5eTtSWFih3pP8aJKzztj7PsxEW3Sg",
@@ -290,18 +551,15 @@
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // ==========================================
-    // 2. MAIN APP LOGIC
+    // 3. MAIN APP LOGIC
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
-      // Auth Guard
       auth.onAuthStateChanged(user => {
         if (!user) return window.location.href = 'index.html';
-        
         updateUserUI(user);
         initDashboard();
       });
 
-      // Event Listeners
       document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
         e.preventDefault();
         auth.signOut().then(() => window.location.href = 'index.html');
@@ -310,70 +568,57 @@
 
     function updateUserUI(user) {
       const displayName = user.displayName || user.email?.split('@')[0] || 'Admin';
-      const userDisplay = document.getElementById('usernameDisplay');
-      if (userDisplay) userDisplay.textContent = displayName;
+      document.getElementById('usernameDisplay').textContent = displayName;
       
       if (user.photoURL) {
-        const userIcon = document.querySelector('#userDropdown i');
-        if (userIcon) {
-          userIcon.className = ''; // Remove existing classes
-          userIcon.style.cssText = `
-            background-image: url(${user.photoURL});
-            background-size: cover;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: inline-block;
-            vertical-align: middle;
-          `;
-        }
+        const userIcon = document.getElementById('userIcon');
+        userIcon.innerHTML = '';
+        userIcon.style.backgroundImage = `url(${user.photoURL})`;
+        userIcon.style.backgroundSize = 'cover';
       }
     }
 
     // ==========================================
-    // 3. OPTIMIZED DATA FETCHING
+    // 4. DATA FETCHING & RENDERING
     // ==========================================
     async function initDashboard() {
       try {
-        // Parallel execution: Run all 3 queries at the same time
-        const [productsRes, billsRes, recentRes] = await Promise.all([
+        const today = new Date();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(today.getDate() - 7);
+        const iso7Days = sevenDaysAgo.toISOString();
+
+        const [productsRes, allBillsRes, recentRes, chartBillsRes] = await Promise.all([
           supabaseClient.from('products').select('*', { count: 'exact', head: true }),
           supabaseClient.from('bills').select('amount_paid, balance'),
-          supabaseClient.from('bills').select('bill_number, bill_date, customer, grand_total, status')
-            .order('bill_date', { ascending: false })
-            .limit(5)
+          supabaseClient.from('bills').select('bill_number, bill_date, customer, grand_total, status').order('bill_date', { ascending: false }).limit(6),
+          supabaseClient.from('bills').select('bill_date, grand_total').gte('bill_date', iso7Days)
         ]);
 
         // Process Products
         updateStat('totalComponents', productsRes.count || 0);
 
-        // Process Financials (Client-side aggregation)
-        if (billsRes.data) {
-          updateStat('totalBills', billsRes.data.length);
-          
-          const totalPaid = billsRes.data.reduce((sum, b) => sum + (b.amount_paid || 0), 0);
-          const totalPending = billsRes.data.reduce((sum, b) => sum + (Math.max(0, b.balance || 0)), 0);
-          
+        // Process Financials
+        if (allBillsRes.data) {
+          updateStat('totalBills', allBillsRes.data.length);
+          const totalPaid = allBillsRes.data.reduce((sum, b) => sum + (b.amount_paid || 0), 0);
+          const totalPending = allBillsRes.data.reduce((sum, b) => sum + (Math.max(0, b.balance || 0)), 0);
           updateStat('totalPayments', formatCurrency(totalPaid));
           updateStat('PendingPayments', formatCurrency(totalPending));
         }
 
-        // Process Recent Bills
         renderRecentBills(recentRes.data || []);
+        renderChart(chartBillsRes.data || []);
 
       } catch (error) {
         console.error('Dashboard Error:', error);
-        document.querySelectorAll('.stat-value').forEach(el => {
+        document.querySelectorAll('.stat-details h3').forEach(el => {
           el.classList.remove('skeleton');
           el.textContent = 'ERR';
-          el.classList.add('text-danger');
         });
       }
     }
 
-    // ==========================================
-    // 4. HELPER FUNCTIONS
-    // ==========================================
     function updateStat(id, value) {
       const el = document.getElementById(id);
       if (el) {
@@ -395,34 +640,118 @@
       tbody.innerHTML = '';
 
       if (bills.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-muted">No recent bills found</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No recent bills found</td></tr>`;
         return;
       }
 
-      const fragment = document.createDocumentFragment();
-      
       bills.forEach(bill => {
         const row = document.createElement('tr');
-        // Handle customer name variance (JSON object vs String)
         let custName = 'Unknown';
         if (bill.customer) {
             custName = typeof bill.customer === 'object' ? (bill.customer.name || 'N/A') : bill.customer;
         }
 
-        const statusClass = bill.status?.toLowerCase() === 'paid' ? 'bg-success' : 'bg-warning text-dark';
-        const dateStr = new Date(bill.bill_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        const isPaid = bill.status?.toLowerCase() === 'paid';
+        const badgeClass = isPaid ? 'bg-success-soft' : 'bg-warning-soft';
+        const dateStr = new Date(bill.bill_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
         row.innerHTML = `
-          <td><a href="viewBill.html?bill=${bill.bill_number}" class="fw-bold text-decoration-none" style="color: var(--primary)">#${bill.bill_number}</a></td>
-          <td>${dateStr}</td>
-          <td>${custName}</td>
-          <td>${formatCurrency(bill.grand_total || 0)}</td>
-          <td><span class="badge ${statusClass} rounded-pill">${bill.status || 'Pending'}</span></td>
+          <td><a href="viewBill.html?bill=${bill.bill_number}" class="table-link">#${bill.bill_number}</a></td>
+          <td class="text-muted"><i class="far fa-calendar-alt me-1"></i> ${dateStr}</td>
+          <td class="fw-medium">${custName}</td>
+          <td class="fw-bold">${formatCurrency(bill.grand_total || 0)}</td>
+          <td><span class="badge ${badgeClass}">${bill.status || 'Pending'}</span></td>
+          <td>
+            <a href="viewBill.html?bill=${bill.bill_number}" class="btn btn-sm btn-light rounded-circle" style="width: 32px; height: 32px; padding: 0; line-height: 32px; color: var(--primary);"><i class="fas fa-chevron-right"></i></a>
+          </td>
         `;
-        fragment.appendChild(row);
+        tbody.appendChild(row);
       });
+    }
+
+    function renderChart(billsData) {
+      // Group last 7 days revenue
+      const days = 7;
+      let dateLabels = [];
+      let revenueData = [];
       
-      tbody.appendChild(fragment);
+      const today = new Date();
+      for(let i=days-1; i>=0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const isoDate = d.toISOString().split('T')[0];
+        
+        const dayTotal = billsData
+           .filter(b => b.bill_date && b.bill_date.startsWith(isoDate))
+           .reduce((sum, b) => sum + (b.grand_total || 0), 0);
+           
+        dateLabels.push(d.toLocaleDateString('en-US', {weekday: 'short'}));
+        revenueData.push(dayTotal);
+      }
+
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#a3bed4' : '#a3aed1';
+      const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+      // Extract primary color from CSS variable for the chart
+      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#4361ee';
+      
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: dateLabels,
+          datasets: [{
+            label: 'Daily Revenue (₹)',
+            data: revenueData,
+            borderColor: primaryColor,
+            backgroundColor: (context) => {
+               const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+               gradient.addColorStop(0, primaryColor + '80'); // 50% opacity
+               gradient.addColorStop(1, primaryColor + '00'); // 0% opacity
+               return gradient;
+            },
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: primaryColor,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: 'rgba(17, 28, 68, 0.9)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              padding: 10,
+              cornerRadius: 8,
+              displayColors: false
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false, color: gridColor },
+              ticks: { color: textColor, font: {family: 'Inter', size: 12} }
+            },
+            y: {
+              grid: { color: gridColor, borderDash: [5, 5] },
+              ticks: { 
+                color: textColor,
+                font: {family: 'Inter', size: 12},
+                callback: function(value) { return '₹' + (value/1000 >= 1 ? value/1000 + 'k' : value); }
+              },
+              beginAtZero: true
+            }
+          }
+        }
+      });
     }
   </script>
 </body>
