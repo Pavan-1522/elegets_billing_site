@@ -96,7 +96,7 @@
         </div>
         <div class="form-group">
             <label for="phoneNumber">Phone Number</label>
-            <input type="tel" id="phoneNumber" placeholder="e.g. +917569741942" required>
+            <input type="tel" id="phoneNumber" placeholder="e.g. +79990001234" required>
         </div>
         <button id="sendBtn" onclick="requestOTP()">Send OTP</button>
         <div id="step1Message" class="message"></div>
@@ -119,11 +119,10 @@
     // System State
     let generatedOTP = null;
 
-    // API Configuration
-    // Port 443 means it uses secure HTTPS
-    const API_URL = 'https://api.sms-gate.app/3rdparty/v1/messages'; 
+    // API Configuration (Updated with your exact endpoint)
+    const API_URL = 'https://api.sms-gate.app/3rdparty/v1/messages';
     
-    // btoa() encodes 'X5-CUK:cxqt3caf6okrsf' to Base64 for Basic Auth
+    // Using your real credentials for the Basic Auth header
     const AUTH_HEADER = 'Basic ' + btoa('X5-CUK:cxqt3caf6okrsf');
 
     function showMessage(elementId, text, type) {
@@ -158,23 +157,18 @@
         // 2. Draft a professional message
         const professionalMessage = `Hello ${name}, your verification code is ${generatedOTP}. Please enter this code to verify your account. Do not share this code with anyone.`;
 
-        // 3. Prepare the request payload matching your API structure
-        const payload = {
-            "textMessage": {
-                "text": professionalMessage
-            },
-            "phoneNumbers": [phone]
-        };
-
         try {
-            // 4. Send the request to your local API
+            // 3. Send the request using your exact fetch structure
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': AUTH_HEADER
+                    'Authorization': AUTH_HEADER,
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    textMessage: { text: professionalMessage },
+                    phoneNumbers: [phone]
+                })
             });
 
             if (response.ok) {
@@ -182,14 +176,15 @@
                 document.getElementById('step1').style.display = 'none';
                 document.getElementById('step2').style.display = 'block';
             } else {
+                // If the API returns a 4xx or 5xx error, show it to the user
                 showMessage('step1Message', `Failed to send SMS. Server responded with status: ${response.status}`, 'error');
             }
         } catch (error) {
             console.error('API Error:', error);
-            // Fallback for testing: Even if API fails (e.g. CORS), we can simulate it for testing
-            showMessage('step1Message', 'Network error. Check console and CORS policy.', 'error');
+            showMessage('step1Message', 'Network error. Make sure your CORS extension is ON while testing locally.', 'error');
             
-            // UNCOMMENT THE LINES BELOW to bypass the API error and test the frontend flow anyway
+            // NOTE: If you still get CORS issues testing locally, you can uncomment 
+            // the lines below to bypass the error and test the Step 2 UI logic.
             // document.getElementById('step1').style.display = 'none';
             // document.getElementById('step2').style.display = 'block';
             // console.log("Simulated OTP for testing:", generatedOTP); 
@@ -210,7 +205,6 @@
         // Compare the entered OTP with the generated one
         if (userOtp === generatedOTP) {
             showMessage('step2Message', '✅ OTP Verified Successfully! Account authenticated.', 'success');
-            // Here you would typically redirect the user to a dashboard
         } else {
             showMessage('step2Message', '❌ Incorrect OTP. Please try again.', 'error');
         }
