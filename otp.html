@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification System</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="tel"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #step2 {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="step1">
+        <h2>Secure Login</h2>
+        <div class="form-group">
+            <label for="userName">Full Name</label>
+            <input type="text" id="userName" placeholder="e.g. John Doe" required>
+        </div>
+        <div class="form-group">
+            <label for="phoneNumber">Phone Number</label>
+            <input type="tel" id="phoneNumber" placeholder="e.g. +917569741942" required>
+        </div>
+        <button id="sendBtn" onclick="requestOTP()">Send OTP</button>
+        <div id="step1Message" class="message"></div>
+    </div>
+
+    <div id="step2">
+        <h2>Verify OTP</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">We've sent a 6-digit verification code to your phone.</p>
+        <div class="form-group">
+            <label for="otpInput">Enter OTP</label>
+            <input type="text" id="otpInput" placeholder="000000" maxlength="6" required>
+        </div>
+        <button id="verifyBtn" onclick="verifyOTP()">Verify Account</button>
+        <button style="background-color: #6c757d; margin-top: 10px;" onclick="resetForm()">Start Over</button>
+        <div id="step2Message" class="message"></div>
+    </div>
+</div>
+
+<script>
+    // System State
+    let generatedOTP = null;
+
+    // API Configuration
+    // Port 443 means it uses secure HTTPS
+    const API_URL = 'https://api.sms-gate.app/3rdparty/v1/messages'; 
+    
+    // btoa() encodes 'X5-CUK:cxqt3caf6okrsf' to Base64 for Basic Auth
+    const AUTH_HEADER = 'Basic ' + btoa('X5-CUK:cxqt3caf6okrsf');
+
+    function showMessage(elementId, text, type) {
+        const msgDiv = document.getElementById(elementId);
+        msgDiv.textContent = text;
+        msgDiv.className = 'message ' + type;
+        msgDiv.style.display = 'block';
+    }
+
+    function hideMessages() {
+        document.getElementById('step1Message').style.display = 'none';
+        document.getElementById('step2Message').style.display = 'none';
+    }
+
+    async function requestOTP() {
+        const name = document.getElementById('userName').value.trim();
+        const phone = document.getElementById('phoneNumber').value.trim();
+        const sendBtn = document.getElementById('sendBtn');
+
+        if (!name || !phone) {
+            showMessage('step1Message', 'Please enter both name and phone number.', 'error');
+            return;
+        }
+
+        hideMessages();
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
+
+        // 1. Generate a random 6-digit OTP
+        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // 2. Draft a professional message
+        const professionalMessage = `Hello ${name}, your verification code is ${generatedOTP}. Please enter this code to verify your account. Do not share this code with anyone.`;
+
+        // 3. Prepare the request payload matching your API structure
+        const payload = {
+            "textMessage": {
+                "text": professionalMessage
+            },
+            "phoneNumbers": [phone]
+        };
+
+        try {
+            // 4. Send the request to your local API
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': AUTH_HEADER
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                // If successful, move to Step 2
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+            } else {
+                showMessage('step1Message', `Failed to send SMS. Server responded with status: ${response.status}`, 'error');
+            }
+        } catch (error) {
+            console.error('API Error:', error);
+            // Fallback for testing: Even if API fails (e.g. CORS), we can simulate it for testing
+            showMessage('step1Message', 'Network error. Check console and CORS policy.', 'error');
+            
+            // UNCOMMENT THE LINES BELOW to bypass the API error and test the frontend flow anyway
+            // document.getElementById('step1').style.display = 'none';
+            // document.getElementById('step2').style.display = 'block';
+            // console.log("Simulated OTP for testing:", generatedOTP); 
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send OTP';
+        }
+    }
+
+    function verifyOTP() {
+        const userOtp = document.getElementById('otpInput').value.trim();
+
+        if (!userOtp) {
+            showMessage('step2Message', 'Please enter the OTP.', 'error');
+            return;
+        }
+
+        // Compare the entered OTP with the generated one
+        if (userOtp === generatedOTP) {
+            showMessage('step2Message', '✅ OTP Verified Successfully! Account authenticated.', 'success');
+            // Here you would typically redirect the user to a dashboard
+        } else {
+            showMessage('step2Message', '❌ Incorrect OTP. Please try again.', 'error');
+        }
+    }
+
+    function resetForm() {
+        generatedOTP = null;
+        document.getElementById('userName').value = '';
+        document.getElementById('phoneNumber').value = '';
+        document.getElementById('otpInput').value = '';
+        hideMessages();
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
