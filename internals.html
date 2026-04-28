@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Internal Marks Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .card {
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        .btn-custom {
+            background: #00ffcc;
+            color: black;
+            font-weight: bold;
+        }
+        .btn-custom:hover {
+            background: #00ccaa;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-4 bg-dark text-white" style="width: 350px;">
+        <h3 class="text-center mb-3">Internal Calculator</h3>
+
+        <label>Mid 1 (out of 40)</label>
+        <input type="number" id="mid1" class="form-control mb-3" placeholder="Enter Mid 1">
+
+        <label>Mid 2 (out of 40)</label>
+        <input type="number" id="mid2" class="form-control mb-3" placeholder="Enter Mid 2">
+
+        <label>Assignment / OBE</label>
+        <input type="number" id="assignment" class="form-control mb-3" placeholder="Enter Assignment">
+
+        <button class="btn btn-custom w-100" onclick="calculate()">Calculate</button>
+
+        <div class="mt-4 text-center">
+            <h5 id="midResult"></h5>
+            <h5 id="assignResult"></h5>
+            <h4 id="totalResult" class="text-success"></h4>
+        </div>
+    </div>
+</div>
+
+<script>
+function calculate() {
+    let mid1 = parseFloat(document.getElementById("mid1").value) || 0;
+    let mid2 = parseFloat(document.getElementById("mid2").value) || 0;
+    let assignment = parseFloat(document.getElementById("assignment").value) || 0;
+
+    // Convert mids from 40 to 20
+    let mid1_20 = mid1 / 2;
+    let mid2_20 = mid2 / 2;
+
+    let highest = Math.max(mid1_20, mid2_20);
+    let lowest = Math.min(mid1_20, mid2_20);
+
+    // 80% highest + 20% lowest
+    let midFinal = (highest * 0.8) + (lowest * 0.2);
+
+    // Assignment out of 10
+    let assignmentFinal = assignment / 3;
+
+    let total = midFinal + assignmentFinal;
+
+    document.getElementById("midResult").innerText = "Mid Marks (out of 20): " + midFinal.toFixed(2);
+    document.getElementById("assignResult").innerText = "Assignment (out of 10): " + assignmentFinal.toFixed(2);
+    document.getElementById("totalResult").innerText = "Total Internal: " + total.toFixed(2) + " / 30";
+}
+</script>
+
+</body>
+</html>
