@@ -1,0 +1,2130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PrintCost Pro — 3D Print Cost Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════
+   ROOT & THEME VARIABLES
+═══════════════════════════════════════════════ */
+:root {
+  --accent-1: #00f5c4;
+  --accent-2: #7c3aed;
+  --accent-3: #f43f5e;
+  --accent-4: #f59e0b;
+  --accent-5: #3b82f6;
+
+  --grad-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --grad-2: linear-gradient(135deg, #00f5c4 0%, #3b82f6 100%);
+  --grad-3: linear-gradient(135deg, #f43f5e 0%, #f59e0b 100%);
+  --grad-4: linear-gradient(135deg, #7c3aed 0%, #f43f5e 100%);
+  --grad-hero: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-glow-cyan: 0 0 30px rgba(0,245,196,0.25);
+  --shadow-glow-purple: 0 0 30px rgba(124,58,237,0.25);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.3);
+  --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+[data-theme="dark"] {
+  --bg-base: #0a0a14;
+  --bg-surface: rgba(255,255,255,0.04);
+  --bg-surface-hover: rgba(255,255,255,0.08);
+  --bg-card: rgba(255,255,255,0.05);
+  --bg-input: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.1);
+  --border-accent: rgba(0,245,196,0.3);
+  --text-primary: #f0f0ff;
+  --text-secondary: rgba(240,240,255,0.6);
+  --text-muted: rgba(240,240,255,0.35);
+  --glass-bg: rgba(15,12,41,0.7);
+  --glass-border: rgba(255,255,255,0.08);
+}
+
+[data-theme="light"] {
+  --bg-base: #f0f2ff;
+  --bg-surface: rgba(255,255,255,0.7);
+  --bg-surface-hover: rgba(255,255,255,0.9);
+  --bg-card: rgba(255,255,255,0.8);
+  --bg-input: rgba(255,255,255,0.9);
+  --border: rgba(0,0,0,0.08);
+  --border-accent: rgba(124,58,237,0.4);
+  --text-primary: #1a1a2e;
+  --text-secondary: rgba(26,26,46,0.65);
+  --text-muted: rgba(26,26,46,0.4);
+  --glass-bg: rgba(255,255,255,0.65);
+  --glass-border: rgba(0,0,0,0.06);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+/* ═══════════════════════════════════════════════
+   BASE RESET & GLOBAL
+═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* Animated mesh background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124,58,237,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,245,196,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 60% 30%, rgba(244,63,94,0.08) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124,58,237,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0,245,196,0.06) 0%, transparent 60%);
+}
+
+/* ═══════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent-2); border-radius: 3px; }
+
+/* ═══════════════════════════════════════════════
+   TYPOGRAPHY
+═══════════════════════════════════════════════ */
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; }
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════ */
+.app-wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px 100px;
+}
+
+/* ═══════════════════════════════════════════════
+   HEADER / NAV
+═══════════════════════════════════════════════ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 28px;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.logo-icon {
+  width: 44px; height: 44px;
+  background: var(--grad-2);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: var(--shadow-glow-cyan);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.logo-text { font-family: var(--font-display); font-size: 20px; font-weight: 800; }
+.logo-text span { background: var(--grad-2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+
+.btn-icon {
+  width: 40px; height: 40px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  color: var(--text-secondary);
+  transition: var(--transition);
+  backdrop-filter: blur(10px);
+}
+.btn-icon:hover { background: var(--bg-surface-hover); border-color: var(--border-accent); transform: scale(1.05); }
+
+.currency-select {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
+  outline: none;
+}
+.currency-select:hover { border-color: var(--border-accent); }
+
+/* ═══════════════════════════════════════════════
+   HERO STATS BAR
+═══════════════════════════════════════════════ */
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  backdrop-filter: blur(20px);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--grad);
+  opacity: 0.8;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-card);
+}
+
+.stat-card .label { margin-bottom: 8px; display: block; }
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: var(--transition);
+}
+.stat-sub { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+/* ═══════════════════════════════════════════════
+   MAIN GRID
+═══════════════════════════════════════════════ */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+/* ═══════════════════════════════════════════════
+   GLASS CARD
+═══════════════════════════════════════════════ */
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  padding: 28px;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card:hover { border-color: rgba(0,245,196,0.2); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-title .icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+
+/* ═══════════════════════════════════════════════
+   FORM INPUTS
+═══════════════════════════════════════════════ */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-group.full { grid-column: 1 / -1; }
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input-wrap { position: relative; }
+
+.form-input, .form-select {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition);
+  appearance: none;
+}
+
+.form-input:focus, .form-select:focus {
+  border-color: var(--accent-1);
+  box-shadow: 0 0 0 3px rgba(0,245,196,0.12);
+  background: var(--bg-surface-hover);
+}
+
+.form-input::placeholder { color: var(--text-muted); }
+
+.input-suffix {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.range-wrap { display: flex; flex-direction: column; gap: 6px; }
+.range-header { display: flex; justify-content: space-between; align-items: center; }
+.range-val {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-1);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--grad-2);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,245,196,0.4);
+  transition: var(--transition);
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+/* ═══════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  outline: none;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--grad-2);
+  color: #0a0a14;
+  font-weight: 700;
+  box-shadow: var(--shadow-glow-cyan);
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,245,196,0.4); }
+
+.btn-secondary {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: var(--bg-surface-hover); border-color: var(--border-accent); }
+
+.btn-danger {
+  background: rgba(244,63,94,0.12);
+  color: #f43f5e;
+  border: 1px solid rgba(244,63,94,0.25);
+}
+.btn-danger:hover { background: rgba(244,63,94,0.2); }
+
+.btn-sm { padding: 8px 14px; font-size: 12px; }
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* ═══════════════════════════════════════════════
+   BREAKDOWN CARDS
+═══════════════════════════════════════════════ */
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.breakdown-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  backdrop-filter: blur(20px);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.breakdown-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--item-color, var(--grad-2));
+  opacity: 0.6;
+}
+
+.breakdown-card:hover { transform: translateY(-2px); border-color: var(--border-accent); }
+
+.breakdown-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.breakdown-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.breakdown-val {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.breakdown-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* Final price card */
+.final-price-card {
+  background: linear-gradient(135deg, rgba(0,245,196,0.1), rgba(59,130,246,0.1));
+  border: 1px solid rgba(0,245,196,0.3);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  backdrop-filter: blur(20px);
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.final-price-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(0,245,196,0.05) 0%, transparent 60%);
+  animation: pulse-bg 4s ease-in-out infinite;
+}
+
+@keyframes pulse-bg {
+  0%,100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.final-label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+.final-val {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 800;
+  background: var(--grad-2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  display: inline-block;
+}
+.final-breakdown-inline {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.fbi-item { text-align: center; }
+.fbi-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.fbi-val { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--text-secondary); }
+
+/* ═══════════════════════════════════════════════
+   CHARTS
+═══════════════════════════════════════════════ */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.chart-wrap { position: relative; height: 260px; }
+
+/* ═══════════════════════════════════════════════
+   ENERGY SLAB TABLE
+═══════════════════════════════════════════════ */
+.energy-section { margin-bottom: 24px; }
+
+.energy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.slab-table-wrap { overflow-x: auto; }
+
+.slab-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.slab-table thead tr {
+  background: rgba(0,245,196,0.08);
+  border-bottom: 1px solid var(--border-accent);
+}
+
+.slab-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-1);
+}
+
+.slab-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+.slab-table tbody tr:hover { background: var(--bg-surface-hover); }
+
+.slab-table td {
+  padding: 12px 16px;
+  color: var(--text-secondary);
+}
+
+.slab-table td:first-child { color: var(--text-primary); font-weight: 500; }
+.slab-active td { background: rgba(0,245,196,0.05) !important; }
+.slab-active td:first-child { color: var(--accent-1) !important; }
+
+.slab-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: rgba(0,245,196,0.15);
+  color: var(--accent-1);
+  border: 1px solid rgba(0,245,196,0.3);
+}
+
+/* ═══════════════════════════════════════════════
+   HISTORY TABLE
+═══════════════════════════════════════════════ */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.history-table thead tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.history-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.history-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.history-table tbody tr:hover { background: var(--bg-surface-hover); }
+.history-table td { padding: 11px 14px; color: var(--text-secondary); }
+.history-table td:first-child { font-weight: 600; color: var(--text-primary); }
+
+.empty-history {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════════
+   SPOOL TRACKER
+═══════════════════════════════════════════════ */
+.spool-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  backdrop-filter: blur(20px);
+  margin-bottom: 24px;
+}
+
+.spool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.spool-item { text-align: center; }
+.spool-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+.spool-val { font-family: var(--font-display); font-size: 22px; font-weight: 800; }
+
+.progress-ring-wrap { display: flex; justify-content: center; align-items: center; }
+
+.progress-bar-wrap {
+  background: var(--bg-input);
+  border-radius: 99px;
+  height: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--grad-2);
+  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ═══════════════════════════════════════════════
+   GST TOGGLE
+═══════════════════════════════════════════════ */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; }
+
+.toggle-label { font-size: 14px; color: var(--text-secondary); }
+.toggle-sub { font-size: 12px; color: var(--text-muted); }
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px; height: 18px;
+  left: 3px; top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--accent-1); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+/* ═══════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-panel {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: 32px 28px 40px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+
+.modal-overlay.open .modal-panel {
+  transform: translateY(0);
+}
+
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 24px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  backdrop-filter: blur(20px);
+  font-size: 14px;
+  box-shadow: var(--shadow-card);
+  animation: toastIn 0.3s ease;
+  border-left: 3px solid var(--accent-1);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* ═══════════════════════════════════════════════
+   BOTTOM NAV (Mobile)
+═══════════════════════════════════════════════ */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--glass-bg);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  z-index: 100;
+  padding: 0 20px;
+}
+
+.bnav-items {
+  display: flex;
+  justify-content: space-around;
+}
+
+.bnav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+}
+
+.bnav-item.active { color: var(--accent-1); }
+.bnav-icon { font-size: 20px; }
+
+/* ═══════════════════════════════════════════════
+   SECTION DIVIDER
+═══════════════════════════════════════════════ */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* ═══════════════════════════════════════════════
+   COLOR DOTS
+═══════════════════════════════════════════════ */
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════
+   LOADING SPINNER
+═══════════════════════════════════════════════ */
+.spinner {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent-1);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════
+   ANIMATED COUNTER
+═══════════════════════════════════════════════ */
+.counting { animation: countPulse 0.2s ease; }
+@keyframes countPulse {
+  0% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE SECTIONS
+═══════════════════════════════════════════════ */
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+  .energy-grid { grid-template-columns: 1fr; }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .breakdown-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-stats { grid-template-columns: repeat(2, 1fr); }
+  .form-grid { grid-template-columns: 1fr; }
+  .final-val { font-size: 38px; }
+  .bottom-nav { display: block; }
+  .app-wrapper { padding-bottom: 90px; }
+  .spool-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .breakdown-grid { grid-template-columns: 1fr; }
+  .topbar { flex-wrap: wrap; }
+  .logo-text { font-size: 16px; }
+}
+
+/* ═══════════════════════════════════════════════
+   GRADIENTS FOR CARDS
+═══════════════════════════════════════════════ */
+.grad-cyan { --grad: var(--grad-2); --item-color: linear-gradient(135deg,#00f5c4,#3b82f6); }
+.grad-purple { --grad: var(--grad-1); --item-color: linear-gradient(135deg,#667eea,#764ba2); }
+.grad-rose { --grad: var(--grad-3); --item-color: linear-gradient(135deg,#f43f5e,#f59e0b); }
+.grad-violet { --grad: var(--grad-4); --item-color: linear-gradient(135deg,#7c3aed,#f43f5e); }
+.grad-blue { --grad: linear-gradient(135deg,#3b82f6,#06b6d4); --item-color: linear-gradient(135deg,#3b82f6,#06b6d4); }
+.grad-amber { --grad: linear-gradient(135deg,#f59e0b,#ef4444); --item-color: linear-gradient(135deg,#f59e0b,#ef4444); }
+
+/* Icon backgrounds */
+.icon-cyan { background: rgba(0,245,196,0.12); }
+.icon-purple { background: rgba(124,58,237,0.12); }
+.icon-rose { background: rgba(244,63,94,0.12); }
+.icon-amber { background: rgba(245,158,11,0.12); }
+.icon-blue { background: rgba(59,130,246,0.12); }
+
+/* Entrance animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.glass-card, .breakdown-card, .stat-card, .final-price-card {
+  animation: fadeUp 0.5s ease both;
+}
+
+.glass-card:nth-child(2) { animation-delay: 0.1s; }
+.breakdown-card:nth-child(2) { animation-delay: 0.05s; }
+.breakdown-card:nth-child(3) { animation-delay: 0.1s; }
+.breakdown-card:nth-child(4) { animation-delay: 0.15s; }
+.breakdown-card:nth-child(5) { animation-delay: 0.2s; }
+.breakdown-card:nth-child(6) { animation-delay: 0.25s; }
+
+/* Highlight numbers on update */
+.updated {
+  animation: highlight 0.4s ease;
+}
+@keyframes highlight {
+  0% { opacity: 0.4; transform: scale(0.95); }
+  50% { color: var(--accent-1); -webkit-text-fill-color: var(--accent-1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.chip-green { background: rgba(0,245,196,0.12); color: var(--accent-1); border: 1px solid rgba(0,245,196,0.2); }
+.chip-purple { background: rgba(124,58,237,0.12); color: #a78bfa; border: 1px solid rgba(124,58,237,0.2); }
+</style>
+</head>
+
+<body>
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-panel">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <h2 class="modal-title">⚙️ Settings</h2>
+      <button class="btn btn-sm btn-secondary" onclick="closeModal('settingsModal')">✕ Close</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      <div>
+        <div class="label" style="margin-bottom:14px">Filament Prices</div>
+        <div class="form-grid" style="gap:12px">
+          <div class="form-group">
+            <label class="form-label">🧵 PLA Price (per kg)</label>
+            <div class="input-wrap">
+              <input class="form-input" type="number" id="s_pla" value="700">
+              <span class="input-suffix">₹/kg</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🧵 PETG Price (per kg)</label>
+            <div class="input-wrap">
+              <input class="form-input" type="number" id="s_petg" value="800">
+              <span class="input-suffix">₹/kg</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="label" style="margin-bottom:14px">Electricity & Power</div>
+        <div class="form-grid" style="gap:12px">
+          <div class="form-group">
+            <label class="form-label">⚡ Electricity Rate</label>
+            <div class="input-wrap">
+              <input class="form-input" type="number" id="s_elec" value="8" step="0.5">
+              <span class="input-suffix">₹/kWh</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🖨️ Printer Power</label>
+            <div class="input-wrap">
+              <input class="form-input" type="number" id="s_watts" value="120">
+              <span class="input-suffix">W</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="label" style="margin-bottom:14px">Defaults</div>
+        <div class="form-grid" style="gap:12px">
+          <div class="form-group">
+            <label class="form-label">🔧 Machine Cost/hr</label>
+            <div class="input-wrap">
+              <input class="form-input" type="number" id="s_machine" value="20">
+              <span class="input-suffix">₹/hr</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">👤 Default Labor</label>
+            <div class="input-wrap">
+              <input class="form-input" type="number" id="s_labor" value="100">
+              <span class="input-suffix">₹</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📦 Spool Size (g)</label>
+            <div class="input-wrap">
+              <input class="form-input" type="number" id="s_spool" value="1000">
+              <span class="input-suffix">g</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📦 Remaining Filament</label>
+            <div class="input-wrap">
+              <input class="form-input" type="number" id="s_remaining" value="1000">
+              <span class="input-suffix">g</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="label" style="margin-bottom:14px">Tax & Options</div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">GST (18%)</div>
+            <div class="toggle-sub">Add GST to final price</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="s_gst">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="btn-group" style="margin-top:4px">
+        <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+        <button class="btn btn-secondary" onclick="resetSettings()">↺ Reset Defaults</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div class="app-wrapper">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a class="logo" href="#">
+      <div class="logo-icon">🖨️</div>
+      <div class="logo-text">Print<span>Cost</span> Pro</div>
+    </a>
+    <div class="topbar-actions">
+      <select class="currency-select" id="currencySelect" onchange="setCurrency(this.value)">
+        <option value="₹">₹ INR</option>
+        <option value="$">$ USD</option>
+        <option value="€">€ EUR</option>
+        <option value="£">£ GBP</option>
+      </select>
+      <button class="btn-icon" onclick="openModal('settingsModal')" title="Settings">⚙️</button>
+      <button class="btn-icon" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    </div>
+  </div>
+
+  <!-- HERO STATS -->
+  <div class="hero-stats">
+    <div class="stat-card grad-cyan">
+      <span class="label">Final Price</span>
+      <div class="stat-value" id="stat_final">₹0.00</div>
+      <div class="stat-sub">Incl. profit margin</div>
+    </div>
+    <div class="stat-card grad-purple">
+      <span class="label">Material Cost</span>
+      <div class="stat-value" id="stat_material">₹0.00</div>
+      <div class="stat-sub">Filament only</div>
+    </div>
+    <div class="stat-card grad-rose">
+      <span class="label">Profit Amount</span>
+      <div class="stat-value" id="stat_profit">₹0.00</div>
+      <div class="stat-sub">At current margin</div>
+    </div>
+    <div class="stat-card grad-amber">
+      <span class="label">Print Hours</span>
+      <div class="stat-value" id="stat_hours">0h 0m</div>
+      <div class="stat-sub">Machine runtime</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID: INPUT + OPTIONS -->
+  <div class="main-grid">
+    <!-- INPUT FORM -->
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="icon icon-cyan">🧮</div>
+          Print Parameters
+        </div>
+        <span class="chip chip-green">Live</span>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">🧵 Filament Type</label>
+          <select class="form-select" id="filamentType" onchange="calculate()">
+            <option value="pla">PLA — Standard</option>
+            <option value="petg">PETG — Flexible</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">⚖️ Filament Used</label>
+          <div class="input-wrap">
+            <input class="form-input" type="number" id="filamentGrams" value="50" min="0" oninput="calculate()">
+            <span class="input-suffix">g</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">⏱️ Print Time</label>
+          <div class="input-wrap">
+            <input class="form-input" type="number" id="printHours" value="2" min="0" step="0.5" oninput="calculate()">
+            <span class="input-suffix">hrs</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">⚡ Electricity Rate</label>
+          <div class="input-wrap">
+            <input class="form-input" type="number" id="elecRate" value="8" min="0" step="0.5" oninput="calculate()">
+            <span class="input-suffix">₹/kWh</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🔌 Printer Power</label>
+          <div class="input-wrap">
+            <input class="form-input" type="number" id="printerWatts" value="120" min="0" oninput="calculate()">
+            <span class="input-suffix">W</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🔧 Machine Cost/hr</label>
+          <div class="input-wrap">
+            <input class="form-input" type="number" id="machineCost" value="20" min="0" oninput="calculate()">
+            <span class="input-suffix">₹/hr</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">👤 Labor Cost</label>
+          <div class="input-wrap">
+            <input class="form-input" type="number" id="laborCost" value="100" min="0" oninput="calculate()">
+            <span class="input-suffix">₹</span>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <div class="range-wrap">
+            <div class="range-header">
+              <label class="form-label">❌ Failure Margin</label>
+              <span class="range-val" id="failLabel">20%</span>
+            </div>
+            <input type="range" id="failMargin" min="0" max="100" value="20"
+              oninput="document.getElementById('failLabel').textContent=this.value+'%'; calculate()">
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <div class="range-wrap">
+            <div class="range-header">
+              <label class="form-label">📈 Profit Margin</label>
+              <span class="range-val" id="profitLabel">30%</span>
+            </div>
+            <input type="range" id="profitMargin" min="0" max="200" value="30"
+              oninput="document.getElementById('profitLabel').textContent=this.value+'%'; calculate()">
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveToHistory()">💾 Save Calculation</button>
+        <button class="btn btn-secondary" onclick="exportPDF()">📄 Export PDF</button>
+        <button class="btn btn-danger" onclick="resetForm()">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- COST BREAKDOWN RIGHT PANEL -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <!-- Final Price Card -->
+      <div class="final-price-card">
+        <div class="final-label">💰 Final Selling Price</div>
+        <div class="final-val" id="finalPriceDisplay">₹0.00</div>
+        <div class="final-breakdown-inline">
+          <div class="fbi-item">
+            <div class="fbi-label">Subtotal</div>
+            <div class="fbi-val" id="fbi_sub">₹0.00</div>
+          </div>
+          <div class="fbi-item">
+            <div class="fbi-label">+ Failure</div>
+            <div class="fbi-val" id="fbi_fail">₹0.00</div>
+          </div>
+          <div class="fbi-item">
+            <div class="fbi-label">+ Profit</div>
+            <div class="fbi-val" id="fbi_profit">₹0.00</div>
+          </div>
+          <div class="fbi-item" id="gstRow" style="display:none">
+            <div class="fbi-label">+ GST 18%</div>
+            <div class="fbi-val" id="fbi_gst">₹0.00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Breakdown grid -->
+      <div class="breakdown-grid">
+        <div class="breakdown-card grad-cyan">
+          <span class="breakdown-icon">🧵</span>
+          <div class="breakdown-label">Material</div>
+          <div class="breakdown-val" id="bc_material">₹0.00</div>
+          <div class="breakdown-sub" id="bc_material_sub">0g × ₹0</div>
+        </div>
+        <div class="breakdown-card grad-purple">
+          <span class="breakdown-icon">⚡</span>
+          <div class="breakdown-label">Electricity</div>
+          <div class="breakdown-val" id="bc_elec">₹0.00</div>
+          <div class="breakdown-sub" id="bc_elec_sub">0h × 0W × ₹0</div>
+        </div>
+        <div class="breakdown-card grad-blue">
+          <span class="breakdown-icon">🔧</span>
+          <div class="breakdown-label">Machine</div>
+          <div class="breakdown-val" id="bc_machine">₹0.00</div>
+          <div class="breakdown-sub" id="bc_machine_sub">0h × ₹20/hr</div>
+        </div>
+        <div class="breakdown-card grad-amber">
+          <span class="breakdown-icon">👤</span>
+          <div class="breakdown-label">Labor</div>
+          <div class="breakdown-val" id="bc_labor">₹0.00</div>
+          <div class="breakdown-sub">Fixed charge</div>
+        </div>
+        <div class="breakdown-card grad-rose">
+          <span class="breakdown-icon">⚠️</span>
+          <div class="breakdown-label">Failure</div>
+          <div class="breakdown-val" id="bc_failure">₹0.00</div>
+          <div class="breakdown-sub" id="bc_failure_sub">20% of subtotal</div>
+        </div>
+        <div class="breakdown-card grad-violet">
+          <span class="breakdown-icon">📈</span>
+          <div class="breakdown-label">Profit</div>
+          <div class="breakdown-val" id="bc_profit_val">₹0.00</div>
+          <div class="breakdown-sub" id="bc_profit_sub">30% markup</div>
+        </div>
+      </div>
+
+      <!-- Spool Tracker -->
+      <div class="spool-card">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-title" style="font-size:15px">🧵 Spool Tracker</div>
+        </div>
+        <div class="spool-grid">
+          <div>
+            <div class="spool-label">Remaining After Print</div>
+            <div class="spool-val grad-cyan" id="spoolRemaining" style="background:var(--grad-2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">1000g</div>
+            <div class="progress-bar-wrap" style="margin-top:10px">
+              <div class="progress-bar-fill" id="spoolProgressBar" style="width:100%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="spool-label">Prints Remaining</div>
+            <div class="spool-val" id="spoolPrints" style="color:var(--accent-4)">∞</div>
+            <div class="spool-label" style="margin-top:6px">Cost per gram</div>
+            <div class="spool-val" id="costPerGram" style="font-size:16px;color:var(--text-secondary)">₹0.00</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CHARTS SECTION -->
+  <div class="section-header">
+    <div class="section-title">📊 Cost Analytics</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="charts-grid" style="margin-bottom:24px">
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><div class="icon icon-cyan">🥧</div>Cost Distribution</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+    <div class="glass-card">
+      <div class="card-header">
+        <div class="card-title"><div class="icon icon-purple">📊</div>Cost Breakdown</div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="barChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENERGY SECTION -->
+  <div class="section-header">
+    <div class="section-title">⚡ Energy Charges Detail</div>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="energy-section">
+    <div class="energy-grid">
+      <div class="glass-card">
+        <div class="card-header">
+          <div class="card-title"><div class="icon icon-amber">⚡</div>Energy Slab Rates</div>
+          <span class="chip chip-purple" id="energyChip">0 units</span>
+        </div>
+        <div class="slab-table-wrap">
+          <table class="slab-table" id="slabTable">
+            <thead>
+              <tr>
+                <th>Slab</th>
+                <th>Units Range</th>
+                <th>Rate (₹/kWh)</th>
+                <th>Units Used</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody id="slabTableBody">
+              <!-- Populated by JS -->
+            </tbody>
+            <tfoot>
+              <tr style="border-top:2px solid var(--border-accent)">
+                <td colspan="3" style="font-weight:700;color:var(--text-primary);padding:12px 16px">Total Energy Cost</td>
+                <td id="slabTotalUnits" style="font-weight:600;padding:12px 16px;color:var(--accent-1)">0.000</td>
+                <td id="slabTotalAmt" style="font-weight:800;font-family:var(--font-display);padding:12px 16px;color:var(--accent-1)">₹0.00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div class="card-header">
+          <div class="card-title"><div class="icon icon-rose">📈</div>Energy Usage Chart</div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="energyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY SECTION -->
+  <div class="section-header">
+    <div class="section-title">📋 Calculation History</div>
+    <div class="section-line"></div>
+    <button class="btn btn-sm btn-danger" onclick="clearHistory()">🗑️ Clear</button>
+  </div>
+
+  <div class="glass-card" style="margin-bottom:24px">
+    <div style="overflow-x:auto">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Time</th>
+            <th>Type</th>
+            <th>Grams</th>
+            <th>Hours</th>
+            <th>Material</th>
+            <th>Electricity</th>
+            <th>Machine</th>
+            <th>Labor</th>
+            <th>Final Price</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody">
+          <tr><td colspan="10" class="empty-history">No calculations saved yet. Hit "Save Calculation" to record.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav (Mobile) -->
+<nav class="bottom-nav">
+  <div class="bnav-items">
+    <button class="bnav-item active" onclick="scrollToTop()">
+      <span class="bnav-icon">🧮</span>
+      <span>Calculator</span>
+    </button>
+    <button class="bnav-item" onclick="scrollToCharts()">
+      <span class="bnav-icon">📊</span>
+      <span>Charts</span>
+    </button>
+    <button class="bnav-item" onclick="scrollToEnergy()">
+      <span class="bnav-icon">⚡</span>
+      <span>Energy</span>
+    </button>
+    <button class="bnav-item" onclick="scrollToHistory()">
+      <span class="bnav-icon">📋</span>
+      <span>History</span>
+    </button>
+    <button class="bnav-item" onclick="openModal('settingsModal')">
+      <span class="bnav-icon">⚙️</span>
+      <span>Settings</span>
+    </button>
+  </div>
+</nav>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let currency = '₹';
+let settings = {};
+let pieChart, barChart, energyChart;
+let history = [];
+
+const DEFAULTS = {
+  pla: 700, petg: 800,
+  elec: 8, watts: 120,
+  machine: 20, labor: 100,
+  spool: 1000, remaining: 1000,
+  gst: false
+};
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+function init() {
+  loadSettings();
+  loadHistory();
+  applySettingsToForm();
+  initCharts();
+  calculate();
+  // Theme
+  const saved = localStorage.getItem('pcpro_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('themeBtn').textContent = saved === 'dark' ? '🌙' : '☀️';
+  // Currency
+  const cur = localStorage.getItem('pcpro_currency') || '₹';
+  currency = cur;
+  document.getElementById('currencySelect').value = cur;
+}
+
+function loadSettings() {
+  const saved = localStorage.getItem('pcpro_settings');
+  settings = saved ? JSON.parse(saved) : { ...DEFAULTS };
+}
+
+function saveSettings() {
+  settings.pla   = +document.getElementById('s_pla').value;
+  settings.petg  = +document.getElementById('s_petg').value;
+  settings.elec  = +document.getElementById('s_elec').value;
+  settings.watts = +document.getElementById('s_watts').value;
+  settings.machine = +document.getElementById('s_machine').value;
+  settings.labor = +document.getElementById('s_labor').value;
+  settings.spool = +document.getElementById('s_spool').value;
+  settings.remaining = +document.getElementById('s_remaining').value;
+  settings.gst   = document.getElementById('s_gst').checked;
+  localStorage.setItem('pcpro_settings', JSON.stringify(settings));
+  applySettingsToForm();
+  calculate();
+  closeModal('settingsModal');
+  showToast('✅', 'Settings saved!');
+}
+
+function resetSettings() {
+  settings = { ...DEFAULTS };
+  localStorage.removeItem('pcpro_settings');
+  applySettingsToForm();
+  calculate();
+  showToast('↺', 'Settings reset to defaults');
+}
+
+function applySettingsToForm() {
+  document.getElementById('s_pla').value   = settings.pla   ?? DEFAULTS.pla;
+  document.getElementById('s_petg').value  = settings.petg  ?? DEFAULTS.petg;
+  document.getElementById('s_elec').value  = settings.elec  ?? DEFAULTS.elec;
+  document.getElementById('s_watts').value = settings.watts ?? DEFAULTS.watts;
+  document.getElementById('s_machine').value = settings.machine ?? DEFAULTS.machine;
+  document.getElementById('s_labor').value = settings.labor ?? DEFAULTS.labor;
+  document.getElementById('s_spool').value = settings.spool ?? DEFAULTS.spool;
+  document.getElementById('s_remaining').value = settings.remaining ?? DEFAULTS.remaining;
+  document.getElementById('s_gst').checked = settings.gst ?? false;
+  // Sync main form defaults
+  document.getElementById('elecRate').value   = settings.elec   ?? DEFAULTS.elec;
+  document.getElementById('printerWatts').value = settings.watts ?? DEFAULTS.watts;
+  document.getElementById('machineCost').value = settings.machine ?? DEFAULTS.machine;
+  document.getElementById('laborCost').value   = settings.labor  ?? DEFAULTS.labor;
+}
+
+/* ═══════════════════════════════════════════════
+   CORE CALCULATION
+═══════════════════════════════════════════════ */
+function calculate() {
+  const type        = document.getElementById('filamentType').value;
+  const grams       = +document.getElementById('filamentGrams').value || 0;
+  const printHours  = +document.getElementById('printHours').value   || 0;
+  const elecRate    = +document.getElementById('elecRate').value      || 0;
+  const watts       = +document.getElementById('printerWatts').value  || 0;
+  const machineCPH  = +document.getElementById('machineCost').value   || 0;
+  const labor       = +document.getElementById('laborCost').value     || 0;
+  const failPct     = +document.getElementById('failMargin').value    || 0;
+  const profitPct   = +document.getElementById('profitMargin').value  || 0;
+
+  const pricePerKg  = type === 'pla' ? (settings.pla ?? DEFAULTS.pla) : (settings.petg ?? DEFAULTS.petg);
+  const gst         = settings.gst ?? false;
+
+  // FORMULAS
+  const materialCost  = (pricePerKg / 1000) * grams;
+  const electricityCost = (watts / 1000) * printHours * elecRate;
+  const machineCost   = printHours * machineCPH;
+  const subtotal      = materialCost + electricityCost + machineCost + labor;
+  const failureAmt    = subtotal * (failPct / 100);
+  const afterFailure  = subtotal + failureAmt;
+  const profitAmt     = afterFailure * (profitPct / 100);
+  let finalPrice      = afterFailure + profitAmt;
+  const gstAmt        = gst ? finalPrice * 0.18 : 0;
+  if (gst) finalPrice += gstAmt;
+
+  // GST row visibility
+  document.getElementById('gstRow').style.display = gst ? 'block' : 'none';
+
+  // Update UI
+  setVal('finalPriceDisplay', fmt(finalPrice), true);
+  setVal('stat_final',   fmt(finalPrice));
+  setVal('stat_material', fmt(materialCost));
+  setVal('stat_profit',  fmt(profitAmt));
+  setVal('stat_hours',   fmtHours(printHours));
+
+  setVal('fbi_sub',    fmt(subtotal));
+  setVal('fbi_fail',   fmt(failureAmt));
+  setVal('fbi_profit', fmt(profitAmt));
+  setVal('fbi_gst',    fmt(gstAmt));
+
+  setVal('bc_material', fmt(materialCost));
+  document.getElementById('bc_material_sub').textContent = `${grams}g × ₹${pricePerKg}/kg`;
+  setVal('bc_elec', fmt(electricityCost));
+  document.getElementById('bc_elec_sub').textContent = `${printHours}h × ${watts}W × ${currency}${elecRate}`;
+  setVal('bc_machine', fmt(machineCost));
+  document.getElementById('bc_machine_sub').textContent = `${printHours}h × ${currency}${machineCPH}/hr`;
+  setVal('bc_labor', fmt(labor));
+  setVal('bc_failure', fmt(failureAmt));
+  document.getElementById('bc_failure_sub').textContent = `${failPct}% of subtotal`;
+  setVal('bc_profit_val', fmt(profitAmt));
+  document.getElementById('bc_profit_sub').textContent = `${profitPct}% markup`;
+
+  // Spool tracker
+  const spoolSize = settings.spool ?? DEFAULTS.spool;
+  const remaining = settings.remaining ?? DEFAULTS.remaining;
+  const afterPrint = Math.max(0, remaining - grams);
+  const pct = (afterPrint / spoolSize) * 100;
+  document.getElementById('spoolRemaining').textContent = `${afterPrint.toFixed(0)}g`;
+  document.getElementById('spoolProgressBar').style.width = `${Math.min(100,pct)}%`;
+  const printsLeft = grams > 0 ? Math.floor(afterPrint / grams) : '∞';
+  document.getElementById('spoolPrints').textContent = printsLeft;
+  const cpg = grams > 0 ? finalPrice / grams : 0;
+  document.getElementById('costPerGram').textContent = fmt(cpg);
+
+  // Energy slab
+  const totalUnits = (watts / 1000) * printHours;
+  updateSlabTable(totalUnits, elecRate);
+  document.getElementById('energyChip').textContent = `${totalUnits.toFixed(3)} units`;
+
+  // Charts
+  updateCharts(materialCost, electricityCost, machineCost, labor, failureAmt, profitAmt, totalUnits, elecRate);
+}
+
+/* ═══════════════════════════════════════════════
+   FORMATTING HELPERS
+═══════════════════════════════════════════════ */
+function fmt(n) {
+  return `${currency}${n.toFixed(2)}`;
+}
+
+function fmtHours(h) {
+  const hrs = Math.floor(h);
+  const mins = Math.round((h - hrs) * 60);
+  return `${hrs}h ${mins}m`;
+}
+
+function setVal(id, val, large) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = val;
+  el.classList.remove('updated');
+  void el.offsetWidth;
+  el.classList.add('updated');
+}
+
+/* ═══════════════════════════════════════════════
+   ENERGY SLAB TABLE
+═══════════════════════════════════════════════ */
+const SLABS = [
+  { label: 'Slab 1', min: 0,   max: 30,   rate: 3.50 },
+  { label: 'Slab 2', min: 30,  max: 100,  rate: 4.60 },
+  { label: 'Slab 3', min: 100, max: 200,  rate: 6.00 },
+  { label: 'Slab 4', min: 200, max: 500,  rate: 8.00 },
+  { label: 'Slab 5', min: 500, max: Infinity, rate: 9.50 },
+];
+
+function updateSlabTable(totalUnits, flatRate) {
+  const tbody = document.getElementById('slabTableBody');
+  tbody.innerHTML = '';
+  let remaining = totalUnits;
+  let grandTotal = 0;
+  let grandUnits = 0;
+  let activeFound = false;
+
+  SLABS.forEach((slab, i) => {
+    const rangeSize = slab.max === Infinity ? Infinity : slab.max - slab.min;
+    const used = Math.min(remaining, rangeSize === Infinity ? remaining : rangeSize);
+    const amt  = used * slab.rate;
+    remaining -= used;
+    grandTotal += amt;
+    grandUnits += used;
+
+    const isActive = used > 0 && !activeFound;
+    if (used > 0) activeFound = false; // show all used slabs
+
+    const tr = document.createElement('tr');
+    if (used > 0) tr.className = 'slab-active';
+    tr.innerHTML = `
+      <td>${slab.label} ${used > 0 ? '<span class="slab-badge">Active</span>' : ''}</td>
+      <td>${slab.min}–${slab.max === Infinity ? '∞' : slab.max} units</td>
+      <td>${currency}${slab.rate.toFixed(2)}</td>
+      <td>${used.toFixed(3)}</td>
+      <td>${fmt(amt)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('slabTotalUnits').textContent = totalUnits.toFixed(3);
+  document.getElementById('slabTotalAmt').textContent = fmt(grandTotal);
+}
+
+/* ═══════════════════════════════════════════════
+   CHARTS
+═══════════════════════════════════════════════ */
+function initCharts() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const textColor = isDark ? 'rgba(240,240,255,0.6)' : 'rgba(26,26,46,0.6)';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+
+  Chart.defaults.color = textColor;
+  Chart.defaults.borderColor = gridColor;
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+
+  // PIE CHART
+  const pieCtx = document.getElementById('pieChart').getContext('2d');
+  pieChart = new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Material', 'Electricity', 'Machine', 'Labor', 'Failure Margin', 'Profit'],
+      datasets: [{
+        data: [0,0,0,0,0,0],
+        backgroundColor: ['#00f5c4','#7c3aed','#3b82f6','#f59e0b','#f43f5e','#a78bfa'],
+        borderWidth: 0,
+        hoverOffset: 12,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyleWidth: 10 } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${currency}${ctx.parsed.toFixed(2)}`
+          }
+        }
+      },
+      animation: { animateRotate: true, duration: 800, easing: 'easeOutCubic' }
+    }
+  });
+
+  // BAR CHART
+  const barCtx = document.getElementById('barChart').getContext('2d');
+  barChart = new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: ['Material', 'Electricity', 'Machine', 'Labor', 'Failure', 'Profit'],
+      datasets: [{
+        label: 'Cost (₹)',
+        data: [0,0,0,0,0,0],
+        backgroundColor: [
+          'rgba(0,245,196,0.8)', 'rgba(124,58,237,0.8)', 'rgba(59,130,246,0.8)',
+          'rgba(245,158,11,0.8)', 'rgba(244,63,94,0.8)', 'rgba(167,139,250,0.8)'
+        ],
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${currency}${ctx.parsed.y.toFixed(2)}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false } },
+        y: {
+          grid: { color: gridColor },
+          border: { display: false },
+          ticks: { callback: v => `${currency}${v}` }
+        }
+      },
+      animation: { duration: 600, easing: 'easeOutCubic' }
+    }
+  });
+
+  // ENERGY CHART
+  const energyCtx = document.getElementById('energyChart').getContext('2d');
+  energyChart = new Chart(energyCtx, {
+    type: 'bar',
+    data: {
+      labels: SLABS.map(s => s.label),
+      datasets: [{
+        label: 'Units Used',
+        data: [0,0,0,0,0],
+        backgroundColor: 'rgba(0,245,196,0.5)',
+        borderColor: '#00f5c4',
+        borderWidth: 2,
+        borderRadius: 6,
+        yAxisID: 'y'
+      }, {
+        label: 'Rate (₹/kWh)',
+        data: SLABS.map(s => s.rate),
+        type: 'line',
+        borderColor: '#f43f5e',
+        backgroundColor: 'rgba(244,63,94,0.1)',
+        borderWidth: 2,
+        pointStyle: 'circle',
+        pointRadius: 5,
+        fill: true,
+        tension: 0.4,
+        yAxisID: 'y2'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12 } }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false } },
+        y: {
+          type: 'linear', position: 'left',
+          grid: { color: gridColor }, border: { display: false },
+          ticks: { callback: v => `${v}u` }
+        },
+        y2: {
+          type: 'linear', position: 'right',
+          grid: { display: false }, border: { display: false },
+          ticks: { callback: v => `${currency}${v}` }
+        }
+      },
+      animation: { duration: 600 }
+    }
+  });
+}
+
+function updateCharts(mat, elec, mach, labor, fail, profit, units, rate) {
+  if (!pieChart) return;
+
+  const vals = [mat, elec, mach, labor, fail, profit];
+  pieChart.data.datasets[0].data = vals;
+  pieChart.update();
+
+  barChart.data.datasets[0].data = vals;
+  barChart.update();
+
+  // Energy chart: distribute units across slabs
+  let rem = units;
+  const slabUnits = SLABS.map(s => {
+    const size = s.max === Infinity ? rem : s.max - s.min;
+    const used = Math.min(rem, size);
+    rem = Math.max(0, rem - used);
+    return used;
+  });
+  energyChart.data.datasets[0].data = slabUnits;
+  energyChart.update();
+}
+
+/* ═══════════════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════════════ */
+function loadHistory() {
+  const saved = localStorage.getItem('pcpro_history');
+  history = saved ? JSON.parse(saved) : [];
+  renderHistory();
+}
+
+function saveToHistory() {
+  const type       = document.getElementById('filamentType').value.toUpperCase();
+  const grams      = +document.getElementById('filamentGrams').value || 0;
+  const printHours = +document.getElementById('printHours').value   || 0;
+  const elecRate   = +document.getElementById('elecRate').value      || 0;
+  const watts      = +document.getElementById('printerWatts').value  || 0;
+  const machineCPH = +document.getElementById('machineCost').value   || 0;
+  const labor      = +document.getElementById('laborCost').value     || 0;
+  const failPct    = +document.getElementById('failMargin').value    || 0;
+  const profitPct  = +document.getElementById('profitMargin').value  || 0;
+  const pricePerKg = type === 'PLA' ? (settings.pla ?? 700) : (settings.petg ?? 800);
+
+  const mat   = (pricePerKg / 1000) * grams;
+  const elec  = (watts / 1000) * printHours * elecRate;
+  const mach  = printHours * machineCPH;
+  const sub   = mat + elec + mach + labor;
+  const fail  = sub * (failPct / 100);
+  const after = sub + fail;
+  const prof  = after * (profitPct / 100);
+  let final   = after + prof;
+  if (settings.gst) final *= 1.18;
+
+  const entry = {
+    id: Date.now(),
+    time: new Date().toLocaleString('en-IN', { hour12: true, hour:'2-digit', minute:'2-digit', day:'2-digit', month:'short' }),
+    type, grams, printHours,
+    mat: mat.toFixed(2), elec: elec.toFixed(2),
+    mach: mach.toFixed(2), labor: labor.toFixed(2),
+    final: final.toFixed(2)
+  };
+
+  history.unshift(entry);
+  if (history.length > 20) history.pop();
+  localStorage.setItem('pcpro_history', JSON.stringify(history));
+  renderHistory();
+  showToast('💾', 'Calculation saved to history!');
+}
+
+function renderHistory() {
+  const tbody = document.getElementById('historyTableBody');
+  if (!history.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="empty-history">No calculations saved yet. Hit "Save Calculation" to record.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = history.map((h, i) => `
+    <tr>
+      <td>${history.length - i}</td>
+      <td style="white-space:nowrap">${h.time}</td>
+      <td><span class="chip ${h.type==='PLA'?'chip-green':'chip-purple'}">${h.type}</span></td>
+      <td>${h.grams}g</td>
+      <td>${h.printHours}h</td>
+      <td>${currency}${h.mat}</td>
+      <td>${currency}${h.elec}</td>
+      <td>${currency}${h.mach}</td>
+      <td>${currency}${h.labor}</td>
+      <td style="font-family:var(--font-display);font-weight:700;color:var(--accent-1)">${currency}${h.final}</td>
+    </tr>
+  `).join('');
+}
+
+function clearHistory() {
+  if (!confirm('Clear all calculation history?')) return;
+  history = [];
+  localStorage.removeItem('pcpro_history');
+  renderHistory();
+  showToast('🗑️', 'History cleared');
+}
+
+/* ═══════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════ */
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themeBtn').textContent = next === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('pcpro_theme', next);
+  // Rebuild charts with new colors
+  if (pieChart) { pieChart.destroy(); barChart.destroy(); energyChart.destroy(); initCharts(); calculate(); }
+}
+
+/* ═══════════════════════════════════════════════
+   CURRENCY
+═══════════════════════════════════════════════ */
+function setCurrency(c) {
+  currency = c;
+  localStorage.setItem('pcpro_currency', c);
+  calculate();
+}
+
+/* ═══════════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════════ */
+function resetForm() {
+  document.getElementById('filamentType').value = 'pla';
+  document.getElementById('filamentGrams').value = 50;
+  document.getElementById('printHours').value = 2;
+  document.getElementById('elecRate').value = settings.elec ?? 8;
+  document.getElementById('printerWatts').value = settings.watts ?? 120;
+  document.getElementById('machineCost').value = settings.machine ?? 20;
+  document.getElementById('laborCost').value = settings.labor ?? 100;
+  document.getElementById('failMargin').value = 20;
+  document.getElementById('profitMargin').value = 30;
+  document.getElementById('failLabel').textContent = '20%';
+  document.getElementById('profitLabel').textContent = '30%';
+  calculate();
+  showToast('↺', 'Form reset to defaults');
+}
+
+/* ═══════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════ */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+// Close on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+function showToast(icon, msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span style="font-size:18px">${icon}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(30px)'; t.style.transition='0.3s'; setTimeout(() => t.remove(), 300); }, 2500);
+}
+
+/* ═══════════════════════════════════════════════
+   PDF EXPORT
+═══════════════════════════════════════════════ */
+function exportPDF() {
+  showToast('📄', 'Generating PDF invoice...');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+  const type   = document.getElementById('filamentType').value.toUpperCase();
+  const grams  = document.getElementById('filamentGrams').value;
+  const hours  = document.getElementById('printHours').value;
+  const finalP = document.getElementById('finalPriceDisplay').textContent;
+
+  const mat  = document.getElementById('bc_material').textContent;
+  const elec = document.getElementById('bc_elec').textContent;
+  const mach = document.getElementById('bc_machine').textContent;
+  const lab  = document.getElementById('bc_labor').textContent;
+  const fail = document.getElementById('bc_failure').textContent;
+  const prof = document.getElementById('bc_profit_val').textContent;
+
+  // Header
+  doc.setFillColor(10, 10, 20);
+  doc.rect(0, 0, 210, 40, 'F');
+  doc.setTextColor(0, 245, 196);
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('PrintCost Pro', 20, 20);
+  doc.setFontSize(10);
+  doc.setTextColor(160, 160, 200);
+  doc.text('3D Print Cost Invoice', 20, 28);
+  doc.text(`Generated: ${new Date().toLocaleString('en-IN')}`, 20, 34);
+
+  // Job details
+  doc.setTextColor(30, 30, 50);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Job Details', 20, 55);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  const details = [
+    ['Filament Type', type],
+    ['Filament Used', `${grams} grams`],
+    ['Print Time', `${hours} hours`],
+  ];
+  details.forEach(([k,v], i) => {
+    doc.setTextColor(80,80,120); doc.text(k, 20, 65 + i*8);
+    doc.setTextColor(20,20,40); doc.text(v, 90, 65 + i*8);
+  });
+
+  // Cost breakdown
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 30, 50);
+  doc.text('Cost Breakdown', 20, 100);
+
+  const rows = [
+    ['Material Cost', mat],
+    ['Electricity Cost', elec],
+    ['Machine Depreciation', mach],
+    ['Labor Charge', lab],
+    ['Failure Margin', fail],
+    ['Profit', prof],
+  ];
+
+  doc.setFontSize(10);
+  rows.forEach(([k,v], i) => {
+    const y = 110 + i * 10;
+    if (i % 2 === 0) { doc.setFillColor(245,245,255); doc.rect(18, y-4, 174, 8, 'F'); }
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(60,60,100); doc.text(k, 22, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(20,20,60); doc.text(v, 160, y, { align: 'right' });
+  });
+
+  // Final price
+  doc.setFillColor(0, 40, 30);
+  doc.rect(18, 178, 174, 16, 'F');
+  doc.setTextColor(0, 245, 196);
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('FINAL SELLING PRICE', 22, 189);
+  doc.text(finalP, 188, 189, { align: 'right' });
+
+  // Footer
+  doc.setTextColor(150,150,180);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Generated by PrintCost Pro — Professional 3D Print Cost Calculator', 105, 285, { align: 'center' });
+
+  doc.save(`PrintCost_Invoice_${Date.now()}.pdf`);
+  showToast('✅', 'PDF downloaded!');
+}
+
+/* ═══════════════════════════════════════════════
+   SCROLL HELPERS
+═══════════════════════════════════════════════ */
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function scrollToCharts() { document.querySelector('.charts-grid').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function scrollToEnergy() { document.querySelector('.energy-section').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function scrollToHistory() { document.querySelector('.history-table').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
